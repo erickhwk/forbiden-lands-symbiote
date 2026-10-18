@@ -389,6 +389,9 @@ select.field { width: 100%; margin-top: 10px; }
 .notice.warn svg { color: var(--success); flex-shrink: 0; }
 .notice.error svg { color: var(--bane); flex-shrink: 0; }
 
+.btn-damage { display: inline-flex; align-items: center; justify-content: center; color: var(--bane); }
+.btn-damage:hover:not(:disabled) { border-color: var(--bane); }
+
 .link-btn.inline { padding: 0; font-size: 13px; color: var(--success); }
 
 /* ---------- Histórico ---------- */

@@ -241,6 +241,7 @@ var ICON = {
   back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>',
   push: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path></svg>',
   check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
+  crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
   warn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L2.5 20h19L12 3.5z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>',
   tray: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path><circle cx="12" cy="12" r="3"></circle></svg>'
@@ -413,6 +414,7 @@ function renderGear() {
             : "") +
         "</div>" +
       "</div>" +
+      '<button class="btn-step btn-damage" data-action="gearDamage" data-id="' + esc(g.id) + '" title="Danificar (−1 de bônus)" aria-label="Danificar ' + esc(g.name || "item") + ', menos 1 de bônus"' + (g.bonus <= 0 ? " disabled" : "") + ">" + ICON.crack + "</button>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="-1" aria-label="Diminuir bônus"' + (g.bonus <= 0 ? " disabled" : "") + ">−</button>" +
       '<span class="level" aria-label="Bônus ' + g.bonus + '">' + g.bonus + "</span>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="1" aria-label="Aumentar bônus">+</button>' +
@@ -810,6 +812,16 @@ var actions = {
     var intact = g.bonus === g.base;
     g.bonus = clamp(g.bonus + (+el.dataset.delta), 0, 10);
     if (intact || g.bonus > g.base) g.base = g.bonus;
+    save();
+  },
+
+  /* Dano fora de rolagem (decisão da mestra): baixa só o bônus atual. */
+  gearDamage: function (el) {
+    var g = gearById(el.dataset.id);
+    if (!g || g.bonus <= 0) return;
+    if (g.base == null) g.base = g.bonus;
+    g.bonus -= 1;
+    toast((g.name || "Item") + (g.bonus === 0 ? " quebrou." : " perdeu 1 de bônus (" + g.bonus + " de " + g.base + ")."));
     save();
   },
 
