@@ -1,16 +1,16 @@
 /*
- * Iniciativa: tela da mestra e sincronização com as fichas dos jogadores.
+ * Iniciativa: tela do mestre e sincronização com as fichas dos jogadores.
  *
  * A regra do baralho mora em initiative.js (FLInitiative). Este arquivo usa
  * as funções de app.js (app, render, save, toast, esc, ICON, actions).
  *
  * Sincronização (TS.sync, mensagens de até 500 caracteres, em JSON):
- *   ficha -> mestra  { t: "hi", n: nome, x: cartas extras do talento }
- *   mestra -> todos  { t: "who" }              pede que as fichas se apresentem
- *   mestra -> todos  { t: "st", ... }          estado do combate (ordem, rodada, vez)
- *   mestra -> ficha  { t: "ch", id, o: [...] } escolha entre cartas extras
- *   ficha -> mestra  { t: "pk", id, c }        carta escolhida
- *   mestra -> todos  { t: "end" }              fim do combate
+ *   ficha -> mestre  { t: "hi", n: nome, x: cartas extras do talento }
+ *   mestre -> todos  { t: "who" }              pede que as fichas se apresentem
+ *   mestre -> todos  { t: "st", ... }          estado do combate (ordem, rodada, vez)
+ *   mestre -> ficha  { t: "ch", id, o: [...] } escolha entre cartas extras
+ *   ficha -> mestre  { t: "pk", id, c }        carta escolhida
+ *   mestre -> todos  { t: "end" }              fim do combate
  */
 "use strict";
 
@@ -18,11 +18,11 @@ var I = window.FLInitiative;
 
 var FAST_TALENT = "rapido-como-um-raio";
 
-/* Estado de combate do lado do jogador (o que a mestra mandou). */
+/* Estado de combate do lado do jogador (o que o mestre mandou). */
 app.table = { sheets: {}, combat: null, choose: null };
 
 /* ------------------------------------------------------------------ */
-/* Identidade: mestra ou jogador                                      */
+/* Identidade: mestre ou jogador                                      */
 /* ------------------------------------------------------------------ */
 
 function detectRole() {
@@ -52,7 +52,7 @@ function fastExtra() {
   return t ? t.rank : 0;
 }
 
-/* A ficha se apresenta à mestra. */
+/* A ficha se apresenta ao mestre. */
 function sayHello() {
   if (!app.sheet.name && !app.sheet.talentList.length) return;
   syncSend({ t: "hi", n: (app.sheet.name || "Personagem").slice(0, 40), x: fastExtra() }, "gms");
@@ -166,7 +166,7 @@ function afterCombatChange(opts) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Tela da mestra                                                     */
+/* Tela do mestre                                                     */
 /* ------------------------------------------------------------------ */
 
 function renderModeBar() {

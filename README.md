@@ -60,7 +60,7 @@ npm test
 
 - `js/engine.js`: motor de regras puro, sem DOM nem API do TaleSpire. Dá para reaproveitar em outra interface.
 - `js/initiative.js`: baralho de iniciativa, também puro.
-- `js/combat.js`: tela de iniciativa da mestra e sincronização com as fichas dos jogadores.
+- `js/combat.js`: tela de iniciativa do mestre e sincronização com as fichas dos jogadores.
 - `js/app.js`: ficha, telas, bandeja de dados, chat e armazenamento.
 - `css/style.css`: visual.
 - `manifest.json`: configuração do Symbiote.

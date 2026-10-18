@@ -124,7 +124,7 @@ var app = {
   mode: "sheet",      // "sheet" | "combat" (só para quem pode ser mestre)
   canGM: false,
   clientId: null,
-  combat: null,       // combate da mestra (initiative.js)
+  combat: null,       // combate do mestre (initiative.js)
   view: "sheet",      // "sheet" | "roll"
   roll: null
 };
@@ -950,7 +950,7 @@ var actions = {
     save();
   },
 
-  /* Dano fora de rolagem (decisão da mestra): baixa só o bônus atual. */
+  /* Dano fora de rolagem (decisão do mestre): baixa só o bônus atual. */
   gearDamage: function (el) {
     var g = gearById(el.dataset.id);
     if (!g || g.bonus <= 0) return;
