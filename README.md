@@ -17,7 +17,8 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Forçar: só os dados que não deram sucesso nem 1 em atributo/equipamento voltam para a bandeja. Depois de forçar, a ficha aplica o dano no atributo, soma a Força de Vontade e reduz o bônus do equipamento.
 - Orgulho: quando um teste de perícia falha, um botão rola o D12 extra do Orgulho (uma vez por sessão). Se mesmo assim falhar, a ficha marca o Orgulho como perdido.
 - Gastar Pontos de Força de Vontade direto pela ficha (1, 2 ou 3, indicando o talento ou a magia). O gasto aparece no chat da mesa.
-- Rolar sem dados 3D, se precisar. O chat marca essas rolagens como "rolado na ficha".
+- Rolar sem dados 3D, se precisar.
+- Iniciativa com o baralho de 10 cartas (aba só para quem pode ser mestre): montar o combate com as fichas abertas na mesa, a fila do TaleSpire, os minis selecionados ou nomes escritos; grupos de PNJs iguais; cartas extras por surpresa ou Rápido como um Raio, com escolha da carta; rodadas, vez de cada um, marcação de ação rápida e lenta, troca de cartas e FINTAR. A ordem e a vez aparecem no chat e na ficha de cada jogador. O chat marca essas rolagens como "rolado na ficha".
 
 A ficha é salva por campanha, no próprio TaleSpire.
 
@@ -58,6 +59,8 @@ npm test
 ## Estrutura
 
 - `js/engine.js`: motor de regras puro, sem DOM nem API do TaleSpire. Dá para reaproveitar em outra interface.
+- `js/initiative.js`: baralho de iniciativa, também puro.
+- `js/combat.js`: tela de iniciativa da mestra e sincronização com as fichas dos jogadores.
 - `js/app.js`: ficha, telas, bandeja de dados, chat e armazenamento.
 - `css/style.css`: visual.
 - `manifest.json`: configuração do Symbiote.

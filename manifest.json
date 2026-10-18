@@ -4,7 +4,7 @@
   "summary": "Ficha de personagem de Forbidden Lands com rolagem pela bandeja de dados, contagem de sucessos e danos, e forçar a rolagem.",
   "entryPoint": "/index.html",
   "descriptionFilePath": "/README.md",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "api": {
     "version": "0.1",
@@ -15,7 +15,14 @@
       },
       "dice": {
         "onRollResults": "handleRollResult"
+      },
+      "sync": {
+        "onSyncMessage": "handleSyncMessage",
+        "onClientEvent": "handleSyncClientEvent"
       }
+    },
+    "interop": {
+      "id": "fd1e461e-0e28-49d0-9fca-1cf2df09e816"
     }
   },
   "controls": {

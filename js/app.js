@@ -121,6 +121,10 @@ var app = {
   ts: false,          // API do TaleSpire disponível
   sheet: defaultSheet(),
   tab: "skills",
+  mode: "sheet",      // "sheet" | "combat" (só para quem pode ser mestre)
+  canGM: false,
+  clientId: null,
+  combat: null,       // combate da mestra (initiative.js)
   view: "sheet",      // "sheet" | "roll"
   roll: null
 };
@@ -188,7 +192,15 @@ function loadSheet() {
         try { resolve(window.localStorage.getItem(LOCAL_KEY)); } catch (e) { resolve(null); }
       });
   return read.then(function (raw) {
-    if (raw) app.sheet = migrate(JSON.parse(raw));
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    // A partir da 0.3.0 o arquivo guarda { sheet, combat }; antes, só a ficha.
+    if (data && data.sheet) {
+      app.sheet = migrate(data.sheet);
+      if (data.combat && Array.isArray(data.combat.entries)) app.combat = data.combat;
+    } else {
+      app.sheet = migrate(data);
+    }
   }).catch(function (err) {
     console.warn("Ficha nova (nada salvo ainda ou falha ao ler):", err);
   });
@@ -198,7 +210,7 @@ var saveTimer = null;
 function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(function () {
-    var raw = JSON.stringify(app.sheet);
+    var raw = JSON.stringify({ v: 2, sheet: app.sheet, combat: app.combat || null });
     if (app.ts) {
       TS.localStorage.campaign.setBlob(raw).catch(function (err) {
         console.error("Falha ao salvar", err);
@@ -219,7 +231,15 @@ function start(withTaleSpire) {
   if (app.started && !switching) return;
   app.started = true;
   app.ts = !!withTaleSpire;
-  loadSheet().then(render);
+  loadSheet().then(detectRole).then(function () {
+    render();
+    if (!app.ts) return;
+    sayHello();
+    if (app.canGM) {
+      syncSend({ t: "who" });
+      if (app.combat && app.combat.phase !== "setup") broadcastState();
+    }
+  });
 }
 
 /* Chamado pelo TaleSpire (nome declarado no manifest.json). */
@@ -249,6 +269,9 @@ var ICON = {
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
   warn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L2.5 20h19L12 3.5z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>',
+  cards: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 6V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-5"></path></svg>',
+  plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>',
+  next: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>',
   tray: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path><circle cx="12" cy="12" r="3"></circle></svg>'
 };
 
@@ -262,7 +285,10 @@ function render() {
     root.innerHTML = '<div class="app"><p class="muted">Carregando a ficha…</p></div>';
     return;
   }
-  root.innerHTML = '<div class="app">' + (app.view === "roll" ? renderRoll() : renderSheet()) + "</div>";
+  var body = app.view === "roll" ? renderRoll()
+    : app.mode === "combat" && app.canGM ? renderCombat()
+    : renderSheet();
+  root.innerHTML = '<div class="app">' + (app.view === "roll" ? "" : renderModeBar()) + body + "</div>";
 }
 
 function initials(name) {
@@ -275,6 +301,7 @@ function renderSheet() {
   var s = app.sheet;
   return [
     renderHeader(),
+    renderPlayerCombat(),
     renderBrokenBanner(),
     renderAttrs(),
     renderWillpower(),
@@ -1054,7 +1081,7 @@ document.addEventListener("click", function (ev) {
 
 document.addEventListener("input", function (ev) {
   var el = ev.target, bind = el.dataset && el.dataset.bind;
-  if (!bind) return;
+  if (!bind || bind.indexOf("combat.") === 0) return;
   if (bind === "gear.name") {
     var g = gearById(el.dataset.id);
     if (g) g.name = el.value;
