@@ -1,0 +1,10 @@
+{
+  "name": "ficha-forbidden-lands",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ficha de Forbidden Lands como Symbiote do TaleSpire",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/engine.test.js"
+  }
+}
