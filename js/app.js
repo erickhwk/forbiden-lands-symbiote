@@ -12,6 +12,7 @@
 "use strict";
 
 var E = window.FLEngine;
+var C = window.FLCatalog;
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -50,7 +51,8 @@ function defaultSheet() {
     willpower: 0,
     conditions: {},
     gear: [],
-    talents: ""
+    talentList: [],   // [{ id, rank }] do catálogo, ou { id: "custom-…", name, rank }
+    talents: ""       // anotações livres
   };
   ATTRS.forEach(function (a) {
     sheet.attrs[a.key] = { cur: 2, max: 2 };
@@ -64,7 +66,16 @@ function defaultSheet() {
 function migrate(saved) {
   var base = defaultSheet();
   if (!saved || typeof saved !== "object") return base;
-  ["name", "kin", "profession", "talents"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
+  ["name", "talents"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
+  base.kin = catalogId(C.KINS, saved.kin);
+  base.profession = catalogId(C.PROFESSIONS, saved.profession);
+  if (Array.isArray(saved.talentList)) {
+    base.talentList = saved.talentList.filter(function (t) { return t && t.id; }).map(function (t) {
+      var out = { id: String(t.id), rank: clamp(t.rank | 0 || 1, 1, 3) };
+      if (!C.talent(out.id)) out.name = String(t.name || "Talento");
+      return out;
+    });
+  }
   if (typeof saved.willpower === "number") base.willpower = clamp(saved.willpower, 0, MAX_WP);
   ATTRS.forEach(function (a) {
     var s = saved.attrs && saved.attrs[a.key];
@@ -76,7 +87,9 @@ function migrate(saved) {
   CONDITIONS.forEach(function (c) { if (saved.conditions) base.conditions[c[0]] = !!saved.conditions[c[0]]; });
   if (Array.isArray(saved.gear)) {
     base.gear = saved.gear.map(function (g) {
-      return { id: String(g.id || uid()), name: String(g.name || ""), bonus: clamp(g.bonus | 0, 0, 10) };
+      var bonus = clamp(g.bonus | 0, 0, 10);
+      var base = g.base == null ? bonus : clamp(g.base | 0, bonus, 10);
+      return { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base };
     });
   }
   return base;
@@ -106,6 +119,39 @@ var app = {
  */
 
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+/* Aceita um id do catálogo ou o nome escrito (fichas antigas guardavam texto). */
+function catalogId(list, value) {
+  if (!value) return "";
+  var v = String(value).trim().toLowerCase();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === v || list[i].name.toLowerCase() === v) return list[i].id;
+  }
+  return "";
+}
+
+/* Atributos em 0: o personagem está quebrado. */
+function brokenAttrs() {
+  return ATTRS.filter(function (a) { return app.sheet.attrs[a.key].cur === 0; });
+}
+
+/* O que significa cada atributo Acabado (resumo, sem texto do livro). */
+var BROKEN_EFFECT = {
+  forca: "Nocauteado: só consegue se arrastar e não rola perícias. Role um ferimento grave pelo tipo de dano sofrido.",
+  agilidade: "Colapso de exaustão: só consegue se arrastar e não rola perícias.",
+  astucia: "Paralisado de medo ou confusão: pode correr para um lugar seguro, mais nada, e não rola perícias. Role na tabela de horror, a não ser que tenha acabado por forçar uma rolagem.",
+  empatia: "Desaba em desespero: não se comunica com ninguém até recuperar 1 ponto."
+};
+var BROKEN_RECOVERY = {
+  forca: "Cura", agilidade: "Cura", astucia: "Atuação", empatia: "Atuação"
+};
+/* Atributos que impedem rolar perícias quando Acabados. */
+var BLOCKS_SKILLS = { forca: true, agilidade: true, astucia: true };
+
+function talentName(t) {
+  var c = C.talent(t.id);
+  return c ? c.name : t.name;
+}
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
 function esc(s) {
@@ -183,6 +229,7 @@ var ICON = {
   push: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path></svg>',
   check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
+  warn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L2.5 20h19L12 3.5z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>',
   tray: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path><circle cx="12" cy="12" r="3"></circle></svg>'
 };
 
@@ -209,6 +256,7 @@ function renderSheet() {
   var s = app.sheet;
   return [
     renderHeader(),
+    renderBrokenBanner(),
     renderAttrs(),
     renderWillpower(),
     renderConditions(),
@@ -224,9 +272,9 @@ function renderHeader() {
     '<div class="grow">' +
       '<label class="eyebrow" for="f-name" style="position:absolute;left:-9999px">Nome</label>' +
       '<input id="f-name" class="plain-input name" data-bind="name" placeholder="Nome do personagem" value="' + esc(s.name) + '">' +
-      '<div class="row" style="gap:4px">' +
-        '<input class="plain-input sub" data-bind="kin" aria-label="Linhagem" placeholder="Linhagem" value="' + esc(s.kin) + '">' +
-        '<input class="plain-input sub" data-bind="profession" aria-label="Profissão" placeholder="Profissão" value="' + esc(s.profession) + '">' +
+      '<div class="row" style="gap:6px">' +
+        selectHtml("kin", "Ascendência", C.KINS, s.kin) +
+        selectHtml("profession", "Profissão", C.PROFESSIONS, s.profession) +
       "</div>" +
     "</div>" +
     (app.ts
@@ -235,18 +283,43 @@ function renderHeader() {
   "</header>";
 }
 
+function selectHtml(field, label, list, value) {
+  return '<select class="plain-select" data-select="' + field + '" aria-label="' + label + '">' +
+    '<option value="">' + label + "…</option>" +
+    list.map(function (o) {
+      return '<option value="' + o.id + '"' + (o.id === value ? " selected" : "") + ">" + esc(o.name) + "</option>";
+    }).join("") + "</select>";
+}
+
+function renderBrokenBanner() {
+  var broken = brokenAttrs();
+  if (!broken.length) return "";
+  return '<section class="banner" role="alert">' +
+    '<div class="banner-title">' + ICON.warn + "<span>Fora de ação</span></div>" +
+    broken.map(function (a) {
+      return '<div class="banner-item"><strong>' + a.name + " Acabada.</strong> " + esc(BROKEN_EFFECT[a.key]) + "</div>";
+    }).join("") +
+    '<div class="banner-foot">Para voltar: outro personagem rola ' +
+    unique(broken.map(function (a) { return BROKEN_RECOVERY[a.key]; })).join(" ou ") +
+    " em você (ação lenta) e cada sucesso devolve 1 ponto. Sem ajuda, você volta com 1 ponto depois de D6 horas. Marque a recuperação clicando nos quadradinhos do atributo.</div>" +
+  "</section>";
+}
+
+function unique(list) { return list.filter(function (v, i) { return list.indexOf(v) === i; }); }
+
 function renderAttrs() {
   return '<section class="attrs" aria-label="Atributos">' + ATTRS.map(function (a) {
     var v = app.sheet.attrs[a.key];
+    var broken = v.cur === 0;
     var pips = "";
     for (var i = 0; i < v.max; i++) {
       pips += '<button class="pip' + (i < v.cur ? "" : " off") + '" data-action="setAttr" data-attr="' + a.key + '" data-value="' + (i + 1) +
         '" aria-label="' + a.name + " em " + (i + 1) + '"></button>';
     }
-    return '<div class="card attr">' +
+    return '<div class="card attr' + (broken ? " broken" : "") + '">' +
       '<div class="row between" style="align-items:flex-start">' +
         "<div>" +
-          '<p class="eyebrow">' + a.name + "</p>" +
+          '<p class="eyebrow">' + a.name + (broken ? ' <span class="badge">Acabada</span>' : "") + "</p>" +
           '<div class="attr-value">' + v.cur + '<span class="max"> / ' + v.max + "</span></div>" +
         "</div>" +
         '<button class="btn-icon" data-action="openRoll" data-attr="' + a.key + '" aria-label="Rolar ' + a.name + '"' + (v.cur === 0 ? " disabled" : "") + ">" + ICON.die + "</button>" +
@@ -289,7 +362,11 @@ function renderSkills() {
   return '<section class="skill-groups" role="tabpanel" aria-label="Perícias">' + ATTRS.map(function (a) {
     var cur = app.sheet.attrs[a.key].cur;
     return '<div class="skill-group">' +
-      '<div class="row between"><h3>' + a.name + '</h3><span class="small muted">' + E.plural(cur, "dado", "dados") + " de atributo</span></div>" +
+      '<div class="row between"><h3>' + a.name + "</h3>" +
+        (cur === 0
+          ? '<span class="badge">Acabada</span>'
+          : '<span class="small muted">' + E.plural(cur, "dado", "dados") + " de atributo</span>") +
+      "</div>" +
       a.skills.map(function (sk) {
         var lvl = app.sheet.skills[sk[0]];
         return '<div class="skill-row">' +
@@ -306,25 +383,90 @@ function renderSkills() {
 
 function renderGear() {
   var rows = app.sheet.gear.map(function (g) {
-    return '<div class="gear-row">' +
-      '<input class="field grow" data-bind="gear.name" data-id="' + esc(g.id) + '" aria-label="Nome do item" placeholder="Item" value="' + esc(g.name) + '">' +
+    var broken = g.bonus === 0;
+    var damaged = g.base != null && g.bonus < g.base;
+    return '<div class="list-row' + (broken ? " broken" : "") + '">' +
+      '<div class="grow">' +
+        '<input class="plain-input" data-bind="gear.name" data-id="' + esc(g.id) + '" aria-label="Nome do item" placeholder="Nome do item" value="' + esc(g.name) + '">' +
+        '<div class="small muted">' +
+          (broken ? '<span class="badge">Quebrado</span> não dá dados até ser reparado'
+            : damaged ? "Danificado · bônus " + g.bonus + " de " + g.base
+            : "Bônus de Equipamento") +
+        "</div>" +
+      "</div>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="-1" aria-label="Diminuir bônus"' + (g.bonus <= 0 ? " disabled" : "") + ">−</button>" +
-      '<span class="level" style="width:22px;text-align:center;font-family:var(--display);font-size:18px;font-weight:600" aria-label="Bônus ' + g.bonus + '">' + g.bonus + "</span>" +
+      '<span class="level" aria-label="Bônus ' + g.bonus + '">' + g.bonus + "</span>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="1" aria-label="Aumentar bônus">+</button>' +
-      '<button class="btn-icon sm" data-action="gearRemove" data-id="' + esc(g.id) + '" aria-label="Remover item">' + ICON.close + "</button>" +
+      '<button class="btn-icon sm" data-action="gearRemove" data-id="' + esc(g.id) + '" aria-label="Remover ' + esc(g.name || "item") + '">' + ICON.close + "</button>" +
     "</div>";
   }).join("");
-  return '<section role="tabpanel" aria-label="Equipamento" style="display:flex;flex-direction:column;gap:12px">' +
-    '<p class="small muted" style="margin:0">O bônus do item vira dados de equipamento. Se você forçar e tirar 1 neles, o bônus cai.</p>' +
-    '<div class="gear-list">' + (rows || '<p class="muted" style="margin:0">Nenhum item ainda.</p>') + "</div>" +
-    '<button class="btn-ghost" data-action="gearAdd">Adicionar item</button>' +
+
+  var picker = '<option value="">Escolha um item…</option>' +
+    C.GEAR.map(function (grp) {
+      return '<optgroup label="' + esc(grp.group) + '">' + grp.items.map(function (it) {
+        return '<option value="' + it.id + '">' + esc(it.name) + (it.bonus != null ? " (bônus " + it.bonus + ")" : "") + "</option>";
+      }).join("") + "</optgroup>";
+    }).join("") +
+    '<option value="__custom">Outro item (escrever o nome)</option>';
+
+  return '<section role="tabpanel" aria-label="Equipamento" class="stack">' +
+    '<p class="small muted" style="margin:0">O Bônus de Equipamento vira dados na rolagem. Se você forçar e tirar 1 neles, o bônus cai; em 0 o item quebra.</p>' +
+    '<div class="list">' + (rows || '<p class="muted" style="margin:0">Nenhum item ainda.</p>') + "</div>" +
+    '<div class="adder"><label for="f-add-gear" class="sr-only">Adicionar item</label>' +
+      '<select id="f-add-gear" class="field grow">' + picker + "</select>" +
+      '<button class="btn-add" data-action="gearAdd">Adicionar</button></div>' +
   "</section>";
 }
 
 function renderTalents() {
-  return '<section role="tabpanel" aria-label="Talentos">' +
-    '<label class="eyebrow" for="f-talents" style="display:block;margin-bottom:8px">Talentos e anotações</label>' +
-    '<textarea id="f-talents" class="field" data-bind="talents" placeholder="Um talento por linha">' + esc(app.sheet.talents) + "</textarea>" +
+  var s = app.sheet;
+  var chosen = {};
+  s.talentList.forEach(function (t) { chosen[t.id] = true; });
+
+  var rows = s.talentList.map(function (t) {
+    var c = C.talent(t.id);
+    var group = !c ? "Personalizado" : c.group === "kin" ? "Ascendência" : c.group === "profession" ? "Profissão" : "Geral";
+    var ranked = !c || c.group !== "kin";
+    return '<div class="list-row">' +
+      '<div class="grow">' +
+        (c ? '<div class="item-name">' + esc(c.name) + "</div>"
+           : '<input class="plain-input" data-bind="talent.name" data-id="' + esc(t.id) + '" aria-label="Nome do talento" placeholder="Nome do talento" value="' + esc(t.name) + '">') +
+        '<div class="small muted">' + group + (ranked ? " · Categoria " + t.rank : "") + "</div>" +
+      "</div>" +
+      (ranked
+        ? '<button class="btn-step" data-action="talentRank" data-id="' + esc(t.id) + '" data-delta="-1" aria-label="Diminuir categoria"' + (t.rank <= 1 ? " disabled" : "") + ">−</button>" +
+          '<span class="level" aria-label="Categoria ' + t.rank + '">' + t.rank + "</span>" +
+          '<button class="btn-step" data-action="talentRank" data-id="' + esc(t.id) + '" data-delta="1" aria-label="Aumentar categoria"' + (t.rank >= 3 ? " disabled" : "") + ">+</button>"
+        : "") +
+      '<button class="btn-icon sm" data-action="talentRemove" data-id="' + esc(t.id) + '" aria-label="Remover talento">' + ICON.close + "</button>" +
+    "</div>";
+  }).join("");
+
+  function opts(list) {
+    return list.filter(function (t) { return !chosen[t.id]; }).map(function (t) {
+      return '<option value="' + t.id + '">' + esc(t.name) + "</option>";
+    }).join("");
+  }
+  var kin = C.kin(s.kin);
+  var groups = [];
+  if (kin) groups.push(["Da sua ascendência", C.TALENTS.filter(function (t) { return t.id === kin.talent; })]);
+  if (s.profession) groups.push(["Da sua profissão", C.TALENTS.filter(function (t) { return t.profession === s.profession; })]);
+  groups.push(["Gerais", C.TALENTS.filter(function (t) { return t.group === "general"; })]);
+  groups.push(["De outras profissões", C.TALENTS.filter(function (t) { return t.group === "profession" && t.profession !== s.profession; })]);
+  var picker = '<option value="">Escolha um talento…</option>' +
+    groups.map(function (g) {
+      var o = opts(g[1]);
+      return o ? '<optgroup label="' + g[0] + '">' + o + "</optgroup>" : "";
+    }).join("") +
+    '<option value="__custom">Outro talento (escrever o nome)</option>';
+
+  return '<section role="tabpanel" aria-label="Talentos" class="stack">' +
+    '<div class="list">' + (rows || '<p class="muted" style="margin:0">Nenhum talento ainda. Escolher a ascendência já adiciona o talento dela.</p>') + "</div>" +
+    '<div class="adder"><label for="f-add-talent" class="sr-only">Adicionar talento</label>' +
+      '<select id="f-add-talent" class="field grow">' + picker + "</select>" +
+      '<button class="btn-add" data-action="talentAdd">Adicionar</button></div>' +
+    '<div><label class="eyebrow" for="f-talents" style="display:block;margin:8px 0">Anotações</label>' +
+    '<textarea id="f-talents" class="field" data-bind="talents" placeholder="Efeitos dos talentos, dívidas, segredos…">' + esc(s.talents) + "</textarea></div>" +
   "</section>";
 }
 
@@ -341,6 +483,27 @@ function currentPool(r) {
     gear: gear ? gear.bonus : 0,
     artifacts: r.artifact ? [r.artifact] : []
   });
+}
+
+function talentById(id) { return app.sheet.talentList.filter(function (t) { return t.id === id; })[0] || null; }
+
+function focusLast(selector) {
+  setTimeout(function () {
+    var els = document.querySelectorAll(selector);
+    if (els.length) els[els.length - 1].focus();
+  }, 0);
+}
+
+/* Trocar a ascendência troca o talento de ascendência. */
+function setKin(id) {
+  var s = app.sheet;
+  s.talentList = s.talentList.filter(function (t) {
+    var c = C.talent(t.id);
+    return !(c && c.group === "kin");
+  });
+  s.kin = id;
+  var kin = C.kin(id);
+  if (kin && C.talent(kin.talent)) s.talentList.unshift({ id: kin.talent, rank: 1 });
 }
 
 function gearById(id) { return app.sheet.gear.filter(function (g) { return g.id === id; })[0] || null; }
@@ -365,6 +528,16 @@ function renderRoll() {
     '<div><p class="eyebrow">' + attr.name + (r.skillKey ? " + " + skillName(r.skillKey) : "") + "</p>" +
     '<h1 class="title">Rolar ' + esc(rollTitle(r)) + "</h1></div></div>";
 
+  var blocking = brokenAttrs().filter(function (b) { return BLOCKS_SKILLS[b.key]; });
+  if (blocking.length) {
+    html += '<div class="banner" role="alert"><div class="banner-title">' + ICON.warn + "<span>Fora de ação</span></div>" +
+      '<div class="banner-item">Com ' + blocking.map(function (b) { return b.name; }).join(" e ") +
+      " Acabada, a regra não deixa rolar perícias. Role só se o mestre liberar.</div></div>";
+  } else if (app.sheet.attrs[r.attrKey].cur === 0) {
+    html += '<div class="banner" role="alert"><div class="banner-title">' + ICON.warn + "<span>" + attr.name + " Acabada</span></div>" +
+      '<div class="banner-item">Sem dados de atributo nesta rolagem.</div></div>';
+  }
+
   html += '<section class="pool" aria-label="Dados da rolagem">';
 
   html += '<div class="card pool-row"><span class="chip chip-attribute"></span>' +
@@ -388,7 +561,7 @@ function renderRoll() {
     '<label for="f-gear" style="position:absolute;left:-9999px">Equipamento usado</label>' +
     '<select id="f-gear" class="field" data-bind="roll.gear"' + (busy ? " disabled" : "") + '><option value="">Sem equipamento</option>' +
     app.sheet.gear.map(function (g) {
-      return '<option value="' + esc(g.id) + '"' + (g.id === r.gearId ? " selected" : "") + ">" + esc(g.name || "Item sem nome") + " (bônus " + g.bonus + ")</option>";
+      return '<option value="' + esc(g.id) + '"' + (g.id === r.gearId ? " selected" : "") + ">" + esc(g.name || "Item sem nome") + (g.bonus === 0 ? " (quebrado)" : " (bônus " + g.bonus + ")") + "</option>";
     }).join("") + "</select></div>";
 
   html += '<div class="card"><div class="pool-row"><span class="chip chip-artifact"></span>' +
@@ -421,6 +594,35 @@ function renderRoll() {
   return html;
 }
 
+/*
+ * O que forçar pode custar. Os 1 já na mesa viram dano com certeza; os dados
+ * re-rolados podem trazer mais.
+ */
+function pushRisks(r) {
+  var risks = [];
+  var res = r.result;
+  var rerolled = E.pushIndices(r.dice).map(function (i) { return r.dice[i]; });
+  var count = function (type) { return rerolled.filter(function (d) { return d.type === type; }).length; };
+
+  var attr = attrByKey(r.attrKey), cur = app.sheet.attrs[r.attrKey].cur;
+  var sure = res.attrBanes, maybe = sure + count("attribute");
+  if (cur > 0 && sure >= cur) {
+    risks.push({ sure: true, text: "Forçar vai deixar " + attr.name + " Acabada: " + E.plural(sure, "dado de atributo já mostra", "dados de atributo já mostram") + " 1 e " + attr.name + " está em " + cur + "." });
+  } else if (cur > 0 && maybe >= cur) {
+    risks.push({ sure: false, text: "Forçar pode deixar " + attr.name + " Acabada (" + attr.name + " em " + cur + ")." });
+  } else if (sure > 0) {
+    risks.push({ sure: false, text: "Forçar causa pelo menos " + sure + " de dano em " + attr.name + "." });
+  }
+
+  var gear = gearById(r.gearId);
+  if (gear && gear.bonus > 0) {
+    var gSure = res.gearBanes, gMaybe = gSure + count("gear");
+    if (gSure >= gear.bonus) risks.push({ sure: true, text: "Forçar vai quebrar " + (gear.name || "o item") + "." });
+    else if (gMaybe >= gear.bonus) risks.push({ sure: false, text: "Forçar pode quebrar " + (gear.name || "o item") + "." });
+  }
+  return risks;
+}
+
 function trayPreview(pool) {
   var out = "";
   pool.forEach(function (g) { for (var i = 0; i < g.count; i++) out += '<span class="tray-' + g.type + '"></span>'; });
@@ -444,12 +646,23 @@ function renderResult() {
     var attr = attrByKey(r.attrKey), a = app.sheet.attrs[r.attrKey];
     if (res.attributeDamage) lines.push([res.attributeDamage + " de dano em " + attr.name + " (agora " + a.cur + "/" + a.max + ")", "var(--bane)"]);
     if (res.willpowerGained) lines.push(["+" + res.willpowerGained + " de Força de Vontade (agora " + app.sheet.willpower + ")", "var(--accent)"]);
-    if (res.gearDamage && r.gearName) lines.push([r.gearName + " perde " + res.gearDamage + " de bônus", "var(--bane)"]);
+    if (res.gearDamage && r.gearName) {
+      lines.push([r.gearBroken
+        ? r.gearName + " quebrou (bônus 0): não dá dados até ser reparado"
+        : r.gearName + " perde " + res.gearDamage + " de bônus", "var(--bane)"]);
+    }
     if (!lines.length) lines.push(["Forçada sem danos", "var(--info)"]);
   } else if (res.attrBanes || res.gearBanes) {
     lines.push(["Os 1 em atributo e equipamento só contam se você forçar", "var(--muted)"]);
   }
   if (res.cancelled) lines.push([E.plural(res.cancelled, "sucesso anulado", "sucessos anulados") + " por dados negativos", "var(--muted)"]);
+  if (r.pushed && r.brokeAttr) {
+    var ba = attrByKey(r.attrKey);
+    html += '<section class="banner" role="alert"><div class="banner-title">' + ICON.warn + "<span>" + ba.name + " Acabada</span></div>" +
+      '<div class="banner-item">' + esc(BROKEN_EFFECT[ba.key]) +
+      (ba.key === "astucia" ? " Como foi ao forçar, não precisa rolar na tabela de horror." : "") + "</div></section>";
+  }
+
   if (lines.length) {
     html += '<section class="consequences" aria-label="Consequências">' + lines.map(function (l) {
       return '<div><span class="mark" style="background:' + l[1] + '"></span>' + esc(l[0]) + "</div>";
@@ -478,6 +691,9 @@ function renderResult() {
       '<button class="btn-ghost" data-action="cancelPush">Cancelar</button>';
   } else if (res.canPush) {
     var n = E.pushIndices(r.dice).length;
+    pushRisks(r).forEach(function (risk) {
+      html += '<div class="notice' + (risk.sure ? " error" : " warn") + '">' + ICON.warn + "<span>" + esc(risk.text) + "</span></div>";
+    });
     html += '<button class="btn-primary" data-action="push">' + ICON.push + "Forçar · re-rolar " + E.plural(n, "dado", "dados") + "</button>" +
       '<p class="small muted" style="margin:0">Sucessos e 1 em atributo/equipamento ficam. Depois de forçar, cada 1 em atributo vira 1 de dano e 1 de Força de Vontade.</p>' +
       '<button class="btn-ghost" data-action="finish">Aceitar resultado</button>';
@@ -528,17 +744,50 @@ var actions = {
   },
 
   gearAdd: function () {
-    app.sheet.gear.push({ id: uid(), name: "", bonus: 1 });
+    var sel = document.getElementById("f-add-gear");
+    var value = sel ? sel.value : "";
+    if (!value) { toast("Escolha um item na lista."); return false; }
+    if (value === "__custom") {
+      app.sheet.gear.push({ id: uid(), name: "", bonus: 1, base: 1 });
+      focusLast('[data-bind="gear.name"]');
+    } else {
+      var it = C.gear(value);
+      var bonus = it.bonus == null ? 1 : it.bonus;
+      app.sheet.gear.push({ id: uid(), name: it.name, bonus: bonus, base: bonus });
+      if (it.bonus == null) toast(it.name + " entrou com bônus 1. Ajuste se for outro.");
+    }
     save();
-    setTimeout(function () {
-      var inputs = document.querySelectorAll('[data-bind="gear.name"]');
-      if (inputs.length) inputs[inputs.length - 1].focus();
-    }, 0);
   },
 
   gearBonus: function (el) {
     var g = gearById(el.dataset.id);
-    if (g) g.bonus = clamp(g.bonus + (+el.dataset.delta), 0, 10);
+    if (!g) return;
+    g.bonus = clamp(g.bonus + (+el.dataset.delta), 0, 10);
+    if (g.base == null || g.bonus > g.base) g.base = g.bonus;
+    save();
+  },
+
+  talentAdd: function () {
+    var sel = document.getElementById("f-add-talent");
+    var value = sel ? sel.value : "";
+    if (!value) { toast("Escolha um talento na lista."); return false; }
+    if (value === "__custom") {
+      app.sheet.talentList.push({ id: "custom-" + uid(), name: "", rank: 1 });
+      focusLast('[data-bind="talent.name"]');
+    } else {
+      app.sheet.talentList.push({ id: value, rank: 1 });
+    }
+    save();
+  },
+
+  talentRank: function (el) {
+    var t = talentById(el.dataset.id);
+    if (t) t.rank = clamp(t.rank + (+el.dataset.delta), 1, 3);
+    save();
+  },
+
+  talentRemove: function (el) {
+    app.sheet.talentList = app.sheet.talentList.filter(function (t) { return t.id !== el.dataset.id; });
     save();
   },
 
@@ -600,6 +849,9 @@ document.addEventListener("input", function (ev) {
   if (bind === "gear.name") {
     var g = gearById(el.dataset.id);
     if (g) g.name = el.value;
+  } else if (bind === "talent.name") {
+    var t = talentById(el.dataset.id);
+    if (t) t.name = el.value;
   } else if (bind === "roll.gear") {
     return; // tratado no change
   } else {
@@ -614,6 +866,9 @@ document.addEventListener("input", function (ev) {
 
 document.addEventListener("change", function (ev) {
   var el = ev.target;
+  var field = el.dataset && el.dataset.select;
+  if (field === "kin") { setKin(el.value); save(); render(); return; }
+  if (field === "profession") { app.sheet.profession = el.value; save(); render(); return; }
   if (el.dataset && el.dataset.bind === "roll.gear" && app.roll) {
     app.roll.gearId = el.value || null;
     app.lastGearId = app.roll.gearId;
@@ -783,11 +1038,18 @@ function finishPush(dice) {
   r.posted = false;
 
   var a = app.sheet.attrs[r.attrKey];
+  var wasUp = a.cur > 0;
   a.cur = Math.max(0, a.cur - r.result.attributeDamage);
+  r.brokeAttr = wasUp && a.cur === 0;
   app.sheet.willpower = clamp(app.sheet.willpower + r.result.willpowerGained, 0, MAX_WP);
   var gear = gearById(r.gearId);
   r.gearName = gear ? (gear.name || "Item") : null;
-  if (gear) gear.bonus = Math.max(0, gear.bonus - r.result.gearDamage);
+  if (gear) {
+    var gearWasUp = gear.bonus > 0;
+    if (gear.base == null) gear.base = gear.bonus;
+    gear.bonus = Math.max(0, gear.bonus - r.result.gearDamage);
+    r.gearBroken = gearWasUp && gear.bonus === 0;
+  }
   save();
 
   render();
@@ -806,8 +1068,11 @@ function chatText(r) {
     var parts = [];
     if (res.attributeDamage) parts.push("<color=#E0604E>" + res.attributeDamage + " dano em " + attrByKey(r.attrKey).name + "</color>");
     if (res.willpowerGained) parts.push("+" + res.willpowerGained + " FdV");
-    if (res.gearDamage && r.gearName) parts.push("<color=#E0604E>" + r.gearName.replace(/[<>]/g, "") + " −" + res.gearDamage + "</color>");
+    if (res.gearDamage && r.gearName) {
+      parts.push("<color=#E0604E>" + r.gearName.replace(/[<>]/g, "") + (r.gearBroken ? " quebrou" : " −" + res.gearDamage) + "</color>");
+    }
     if (parts.length) text += " · " + parts.join(" · ");
+    if (r.brokeAttr) text += "\n<color=#E0604E><b>" + attrByKey(r.attrKey).name.toUpperCase() + " ACABADA · fora de ação</b></color>";
   }
 
   var abbr = { attribute: "A", skill: "P", negative: "N", gear: "E", artifact: "Art" };
