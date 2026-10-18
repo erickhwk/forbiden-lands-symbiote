@@ -392,6 +392,27 @@ select.field { width: 100%; margin-top: 10px; }
 .btn-damage { display: inline-flex; align-items: center; justify-content: center; color: var(--bane); }
 .btn-damage:hover:not(:disabled) { border-color: var(--bane); }
 
+.btn-pride {
+  height: 48px; width: 100%;
+  border-radius: 10px;
+  border: 1.5px solid var(--success);
+  background: #2E2614;
+  color: var(--success);
+  font-size: 16px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-pride:hover { background: #3A3018; }
+
+.spend { display: flex; gap: 6px; margin-top: 8px; }
+.spend select.field { margin-top: 0; width: auto; height: 36px; font-size: 14px; }
+.btn-spend {
+  width: 44px; height: 36px; flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  font-weight: 600;
+}
+
 .link-btn.inline { padding: 0; font-size: 13px; color: var(--success); }
 
 /* ---------- Histórico ---------- */

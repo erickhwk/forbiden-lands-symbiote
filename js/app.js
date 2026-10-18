@@ -62,6 +62,8 @@ function defaultSheet() {
     body: "",
     clothes: "",
     pride: "",
+    prideUsedSession: false,  // já usado nesta sessão
+    prideLost: false,         // perdido: falhou mesmo com o Orgulho
     darkSecret: "",
     relationships: "",
     talents: ""       // anotações livres (o nome da chave ficou da primeira versão)
@@ -80,6 +82,8 @@ function migrate(saved) {
   if (!saved || typeof saved !== "object") return base;
   ["name", "talents", "face", "body", "clothes", "pride", "darkSecret", "relationships"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
   if (AGES.some(function (a) { return a[0] === saved.age; })) base.age = saved.age;
+  base.prideUsedSession = !!saved.prideUsedSession;
+  base.prideLost = !!saved.prideLost;
   base.kin = catalogId(C.KINS, saved.kin);
   base.profession = catalogId(C.PROFESSIONS, saved.profession);
   if (Array.isArray(saved.talentList)) {
@@ -241,6 +245,7 @@ var ICON = {
   back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>',
   push: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path></svg>',
   check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
+  star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"></path></svg>',
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
   warn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L2.5 20h19L12 3.5z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>',
@@ -358,7 +363,20 @@ function renderWillpower() {
   return '<section aria-label="Força de Vontade">' +
     '<div class="row between" style="margin-bottom:8px"><h2 class="eyebrow">Força de Vontade</h2>' +
     '<span style="font-family:var(--display);font-size:18px;font-weight:600">' + wp + "</span></div>" +
-    '<div class="wp">' + boxes + "</div></section>";
+    '<div class="wp">' + boxes + "</div>" +
+    '<div class="spend">' +
+      '<label for="f-wp-for" class="sr-only">Gastar em</label>' +
+      '<select id="f-wp-for" class="field grow"><option value="">Gastar em…</option>' +
+        app.sheet.talentList.map(function (t) {
+          var nm = C.talent(t.id) ? C.talent(t.id).name : (t.name || "Talento");
+          return '<option value="' + esc(t.id) + '">' + esc(nm) + "</option>";
+        }).join("") +
+        '<option value="magia">Magia</option><option value="outro">Outra coisa</option>' +
+      "</select>" +
+      [1, 2, 3].map(function (n) {
+        return '<button class="btn-spend" data-action="spendWp" data-n="' + n + '" aria-label="Gastar ' + n + ' PFV"' + (wp < n ? " disabled" : "") + ">−" + n + "</button>";
+      }).join("") +
+    "</div></section>";
 }
 
 function renderConditions() {
@@ -489,6 +507,20 @@ function renderTalents() {
   "</section>";
 }
 
+function prideStatus() {
+  var s = app.sheet;
+  if (s.prideLost) {
+    return '<div class="notice error">' + ICON.warn + '<span class="grow">Orgulho perdido. Jogue uma sessão inteira sem ele, depois escolha outro.</span>' +
+      '<button class="link-btn inline" data-action="newPride">Escolher outro</button></div>';
+  }
+  if (!s.pride.trim()) return "";
+  if (s.prideUsedSession) {
+    return '<div class="notice">' + ICON.star + '<span class="grow">Já usado nesta sessão.</span>' +
+      '<button class="link-btn inline" data-action="newSession">Nova sessão</button></div>';
+  }
+  return '<div class="notice">' + ICON.star + "<span>Disponível nesta sessão. Use pela tela de resultado quando um teste de perícia falhar.</span></div>";
+}
+
 function renderBackground() {
   var s = app.sheet;
   function text(key, label, hint, rows) {
@@ -508,6 +540,7 @@ function renderBackground() {
     text("clothes", "Roupas", "", 2) +
     '<h2 class="section-title">Quem é</h2>' +
     text("pride", "Orgulho", "Uma vez por sessão, ao falhar numa rolagem ligada a ele, role um D12 extra. Se falhar mesmo assim, você perde o Orgulho.", 2) +
+    prideStatus() +
     text("darkSecret", "Segredo Sombrio", "", 2) +
     text("relationships", "Relacionamentos", "Uma linha por personagem da mesa.", 4) +
     text("talents", "Anotações", "", 6) +
@@ -558,7 +591,7 @@ function rollTitle(r) {
 
 function renderRoll() {
   var r = app.roll;
-  if (r.phase === "result" || r.phase === "pushTray") return renderResult();
+  if (r.phase === "result" || r.phase === "pushTray" || r.phase === "prideTray") return renderResult();
 
   var attr = attrByKey(r.attrKey);
   var pool = currentPool(r);
@@ -667,6 +700,78 @@ function pushRisks(r) {
   return risks;
 }
 
+/* ---------- Orgulho ---------- */
+
+/* Pode usar: teste de perícia que falhou, Orgulho escrito, ainda não usado nesta sessão. */
+function canUsePride(r) {
+  var s = app.sheet;
+  return !!r.skillKey && r.result.successes === 0 && !r.prideUsed &&
+    s.pride.trim() !== "" && !s.prideUsedSession && !s.prideLost;
+}
+
+function renderPrideBlock(r) {
+  if (canUsePride(r)) {
+    return '<button class="btn-pride" data-action="usePride">' + ICON.star + "Usar Orgulho · rolar um D12</button>" +
+      '<p class="small muted" style="margin:0">Seu Orgulho: “' + esc(app.sheet.pride.trim()) + "” · uma vez por sessão, se ele tiver a ver com esta rolagem. Se continuar falhando, você perde o Orgulho.</p>";
+  }
+  if (r.prideUsed && r.result.successes === 0) {
+    return '<div class="notice error">' + ICON.warn + "<span>Nem o Orgulho salvou esta rolagem" +
+      (r.result.canPush ? ". Se terminar sem sucesso, você perde o Orgulho." : ". Ao voltar para a ficha, você perde o Orgulho.") + "</span></div>";
+  }
+  if (r.prideUsed) {
+    return '<div class="notice warn">' + ICON.star + "<span>O Orgulho virou a rolagem.</span></div>";
+  }
+  return "";
+}
+
+function usePride() {
+  var r = app.roll;
+  r.prideUsed = true;
+  app.sheet.prideUsedSession = true;
+  save();
+  if (r.mode === "local" || !app.ts) {
+    addPrideDie(1 + Math.floor(Math.random() * 12));
+    return;
+  }
+  r.phase = "prideTray";
+  render();
+  TS.dice.putDiceInTray([{ name: "Orgulho", roll: "1d12" }], true).then(function (rollId) {
+    if (app.roll === r) r.rollId = rollId;
+  }).catch(function (err) {
+    console.error(err);
+    if (app.roll !== r) return;
+    r.phase = "result";
+    r.prideUsed = false;
+    app.sheet.prideUsedSession = false;
+    save();
+    toast(trayError(err));
+    render();
+  });
+}
+
+/* O D12 do Orgulho entra na rolagem como um Dado de Artefato. */
+function addPrideDie(value) {
+  var r = app.roll;
+  var dice = r.dice.map(function (d) { return { type: d.type, sides: d.sides, value: d.value }; });
+  dice.push({ type: "artifact", sides: 12, value: value, fresh: true, pride: true });
+  r.dice = dice;
+  r.result = E.evaluate(dice, r.pushed);
+  r.phase = "result";
+  r.posted = false;
+  render();
+  settle(dice);
+  postToChat(r);
+}
+
+/* Ao fechar a rolagem: se o Orgulho foi usado e mesmo assim falhou, ele é perdido. */
+function closeRollPride(r) {
+  if (r && r.prideUsed && r.result && r.result.successes === 0 && !app.sheet.prideLost) {
+    app.sheet.prideLost = true;
+    save();
+    toast("Você perdeu o Orgulho. Jogue uma sessão inteira sem ele antes de escolher outro.");
+  }
+}
+
 function trayPreview(pool) {
   var out = "";
   pool.forEach(function (g) { for (var i = 0; i < g.count; i++) out += '<span class="tray-' + g.type + '"></span>'; });
@@ -677,7 +782,7 @@ function trayPreview(pool) {
 
 function renderResult() {
   var r = app.roll, res = r.result;
-  var waiting = r.phase === "pushTray";
+  var waiting = r.phase === "pushTray" || r.phase === "prideTray";
   var name = app.sheet.name || "Personagem";
 
   var html = '<header><div class="row between"><p class="eyebrow">' + esc(rollTitle(r)) + " · " + esc(name) + (r.pushed ? " · forçada" : "") + "</p>" +
@@ -730,8 +835,11 @@ function renderResult() {
   (r.pushed ? "" : '<span><i style="background:var(--text);opacity:.5"></i>Pode forçar</span>') + "</div></section>";
 
   html += '<div class="actions">';
+  if (!waiting) html += renderPrideBlock(r);
   if (waiting) {
-    html += '<div class="notice" role="status">' + ICON.tray + "<span>Dados para forçar na bandeja. Jogue no tabuleiro.</span></div>" +
+    html += '<div class="notice" role="status">' + ICON.tray + "<span>" +
+      (r.phase === "prideTray" ? "O D12 do Orgulho está na bandeja. Jogue no tabuleiro." : "Dados para forçar na bandeja. Jogue no tabuleiro.") +
+      "</span></div>" +
       '<button class="btn-ghost" data-action="cancelPush">Cancelar</button>';
   } else if (res.canPush) {
     var n = E.pushIndices(r.dice).length;
@@ -900,7 +1008,39 @@ var actions = {
 
   cancelPush: function () { app.roll.phase = "result"; app.roll.rollId = null; },
 
-  finish: function () { app.view = "sheet"; app.roll = null; }
+  finish: function () { closeRollPride(app.roll); app.view = "sheet"; app.roll = null; },
+
+  usePride: function () { usePride(); return false; },
+
+  newSession: function () {
+    app.sheet.prideUsedSession = false;
+    save();
+    toast("Nova sessão: o Orgulho está disponível de novo.");
+  },
+
+  newPride: function () {
+    app.sheet.prideLost = false;
+    app.sheet.prideUsedSession = false;
+    app.sheet.pride = "";
+    save();
+    focusLast("#f-pride");
+  },
+
+  spendWp: function (el) {
+    var n = +el.dataset.n;
+    var s = app.sheet;
+    if (s.willpower < n) { toast("Pontos de Força de Vontade insuficientes."); return false; }
+    var sel = document.getElementById("f-wp-for");
+    var reason = sel && sel.value ? sel.options[sel.selectedIndex].text : "";
+    s.willpower -= n;
+    save();
+    toast("Gastou " + n + " PFV" + (reason ? " em " + reason : "") + ". Restam " + s.willpower + ".");
+    if (app.ts) {
+      var who = (s.name || "Personagem").replace(/[<>]/g, "");
+      TS.chat.send("<b>" + who + "</b> gastou <color=#D4793A><b>" + n + " PFV</b></color>" +
+        (reason ? " em " + reason.replace(/[<>]/g, "") : "") + " · restam " + s.willpower, "board").catch(function () {});
+    }
+  }
 };
 
 document.addEventListener("click", function (ev) {
@@ -1043,6 +1183,10 @@ function handleRollResult(ev) {
       pair.values.forEach(function (v) { dice.push({ type: pair.group.type, sides: pair.group.sides, value: v, fresh: true }); });
     });
     showFirstResult(dice);
+  } else if (r.phase === "prideTray") {
+    var pride = matchGroups([{ name: "Orgulho", count: 1 }], results)[0].values[0];
+    if (pride == null) { r.phase = "result"; render(); return; }
+    addPrideDie(pride);
   } else if (r.phase === "pushTray") {
     var values = matchGroups(r.pushGroups, results).map(function (pair) { return pair.values; });
     var next = E.applyPush(r.dice, r.pushGroups, values);
@@ -1129,7 +1273,7 @@ function finishPush(dice) {
 function chatText(r) {
   var res = r.result;
   var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
-  var label = rollTitle(r) + (r.pushed ? " (forçada)" : "");
+  var label = rollTitle(r) + (r.pushed ? " (forçada)" : "") + (r.prideUsed ? " + Orgulho" : "");
   var color = res.successes ? "#E8B84A" : "#A89C88";
   var text = "<b>" + who + "</b> · " + label + ": <color=" + color + "><b>" + E.plural(res.successes, "sucesso", "sucessos") + "</b></color>";
 

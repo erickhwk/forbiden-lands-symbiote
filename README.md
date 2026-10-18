@@ -15,6 +15,8 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Montagem da rolagem: atributo atual, perícia, modificador (sai dos dados de perícia; abaixo de zero vira dados negativos), equipamento e dado de artefato (d8, d10 ou d12).
 - Rolagem na bandeja do TaleSpire. O resultado nativo fica oculto, porque a soma dos d6 não significa nada no Forbidden Lands, e a ficha posta a interpretação no chat da mesa.
 - Forçar: só os dados que não deram sucesso nem 1 em atributo/equipamento voltam para a bandeja. Depois de forçar, a ficha aplica o dano no atributo, soma a Força de Vontade e reduz o bônus do equipamento.
+- Orgulho: quando um teste de perícia falha, um botão rola o D12 extra do Orgulho (uma vez por sessão). Se mesmo assim falhar, a ficha marca o Orgulho como perdido.
+- Gastar Pontos de Força de Vontade direto pela ficha (1, 2 ou 3, indicando o talento ou a magia). O gasto aparece no chat da mesa.
 - Rolar sem dados 3D, se precisar. O chat marca essas rolagens como "rolado na ficha".
 
 A ficha é salva por campanha, no próprio TaleSpire.
