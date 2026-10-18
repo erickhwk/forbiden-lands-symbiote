@@ -19,13 +19,15 @@ var C = window.FLCatalog;
 /* ------------------------------------------------------------------ */
 
 var ATTRS = [
-  { key: "forca", name: "Força", skills: [["potencia", "Potência"], ["resistencia", "Resistência"], ["combate", "Combate"], ["oficios", "Ofícios"]] },
-  { key: "agilidade", name: "Agilidade", skills: [["furtividade", "Furtividade"], ["prestidigitacao", "Prestidigitação"], ["movimento", "Movimento"], ["pontaria", "Pontaria"]] },
-  { key: "astucia", name: "Astúcia", skills: [["exploracao", "Exploração"], ["conhecimento", "Conhecimento"], ["sobrevivencia", "Sobrevivência"], ["perspicacia", "Perspicácia"]] },
-  { key: "empatia", name: "Empatia", skills: [["manipulacao", "Manipulação"], ["atuacao", "Atuação"], ["cura", "Cura"], ["animais", "Lidar com Animais"]] }
+// As chaves ficaram da primeira versão para não perder fichas salvas;
+// os nomes seguem o Manual do Jogador.
+  { key: "forca", name: "Força", skills: [["potencia", "Potência"], ["resistencia", "Resiliência"], ["combate", "Luta"], ["oficios", "Artesanato"]] },
+  { key: "agilidade", name: "Agilidade", skills: [["furtividade", "Furtividade"], ["prestidigitacao", "Artimanha"], ["movimento", "Movimentação"], ["pontaria", "Pontaria"]] },
+  { key: "astucia", name: "Astúcia", skills: [["exploracao", "Patrulha"], ["conhecimento", "Tradição"], ["sobrevivencia", "Sobrevivência"], ["perspicacia", "Discernimento"]] },
+  { key: "empatia", name: "Empatia", skills: [["manipulacao", "Manipulação"], ["atuacao", "Atuação"], ["cura", "Cura"], ["animais", "Adestramento"]] }
 ];
 
-var CONDITIONS = [["faminto", "Faminto"], ["sedento", "Sedento"], ["exausto", "Exausto"], ["congelando", "Congelando"]];
+var CONDITIONS = [["faminto", "Faminto"], ["sedento", "Desidratado"], ["exausto", "Insone"], ["congelando", "Hipotérmico"]];
 
 var MAX_SKILL = 5;
 var MAX_ATTR = 6;
@@ -89,7 +91,7 @@ function migrate(saved) {
     base.gear = saved.gear.map(function (g) {
       var bonus = clamp(g.bonus | 0, 0, 10);
       var base = g.base == null ? bonus : clamp(g.base | 0, bonus, 10);
-      return { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base };
+      return { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base, info: String(g.info || "") };
     });
   }
   return base;
@@ -390,8 +392,8 @@ function renderGear() {
         '<input class="plain-input" data-bind="gear.name" data-id="' + esc(g.id) + '" aria-label="Nome do item" placeholder="Nome do item" value="' + esc(g.name) + '">' +
         '<div class="small muted">' +
           (broken ? '<span class="badge">Quebrado</span> não dá dados até ser reparado'
-            : damaged ? "Danificado · bônus " + g.bonus + " de " + g.base
-            : "Bônus de Equipamento") +
+            : damaged ? "Danificado · bônus " + g.bonus + " de " + g.base + (g.info ? " · " + esc(g.info) : "")
+            : (g.info ? esc(g.info) : "Bônus de Equipamento")) +
         "</div>" +
       "</div>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="-1" aria-label="Diminuir bônus"' + (g.bonus <= 0 ? " disabled" : "") + ">−</button>" +
@@ -752,9 +754,7 @@ var actions = {
       focusLast('[data-bind="gear.name"]');
     } else {
       var it = C.gear(value);
-      var bonus = it.bonus == null ? 1 : it.bonus;
-      app.sheet.gear.push({ id: uid(), name: it.name, bonus: bonus, base: bonus });
-      if (it.bonus == null) toast(it.name + " entrou com bônus 1. Ajuste se for outro.");
+      app.sheet.gear.push({ id: uid(), name: it.name, bonus: it.bonus, base: it.bonus, info: it.info || "" });
     }
     save();
   },
@@ -1067,7 +1067,7 @@ function chatText(r) {
   if (r.pushed) {
     var parts = [];
     if (res.attributeDamage) parts.push("<color=#E0604E>" + res.attributeDamage + " dano em " + attrByKey(r.attrKey).name + "</color>");
-    if (res.willpowerGained) parts.push("+" + res.willpowerGained + " FdV");
+    if (res.willpowerGained) parts.push("+" + res.willpowerGained + " PFV");
     if (res.gearDamage && r.gearName) {
       parts.push("<color=#E0604E>" + r.gearName.replace(/[<>]/g, "") + (r.gearBroken ? " quebrou" : " −" + res.gearDamage) + "</color>");
     }

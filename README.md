@@ -5,9 +5,12 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 ## O que tem
 
 - Atributos com dano (clique nos quadradinhos), Força de Vontade e condições.
+- Aviso claro quando um atributo fica Acabado: o que acontece com o personagem e como ele volta. O chat da mesa também avisa.
 - As 16 perícias, com nível e botão de rolar.
-- Equipamento com bônus, que vira dados de equipamento.
-- Talentos e anotações em texto livre.
+- Ascendência e profissão escolhidas em lista. A ascendência já adiciona o talento dela.
+- Equipamento escolhido do catálogo, com o Bônus de Equipamento do livro. Item que chega a bônus 0 aparece como quebrado.
+- Talentos escolhidos do catálogo (da ascendência, da profissão e gerais), com categoria 1 a 3, e anotações livres.
+- Antes de forçar, a ficha avisa se forçar vai ou pode deixar o atributo Acabado ou quebrar o item.
 - Montagem da rolagem: atributo atual, perícia, modificador (sai dos dados de perícia; abaixo de zero vira dados negativos), equipamento e dado de artefato (d8, d10 ou d12).
 - Rolagem na bandeja do TaleSpire. O resultado nativo fica oculto, porque a soma dos d6 não significa nada no Forbidden Lands, e a ficha posta a interpretação no chat da mesa.
 - Forçar: só os dados que não deram sucesso nem 1 em atributo/equipamento voltam para a bandeja. Depois de forçar, a ficha aplica o dano no atributo, soma a Força de Vontade e reduz o bônus do equipamento.
@@ -64,6 +67,6 @@ npm test
 - Dados negativos: cada 6 anula um sucesso.
 - Ao forçar, re-rola tudo que não mostra sucesso nem dano.
 
-Os nomes das perícias são uma tradução livre e podem diferir da edição brasileira oficial.
+Os nomes de perícias, condições, ascendências, profissões, talentos e itens seguem o Manual do Jogador da edição brasileira. O catálogo fica em `js/catalog.js`, só com nomes e números.
 
 Forbidden Lands é marca da Free League Publishing. Este é um projeto de fã, sem afiliação.
