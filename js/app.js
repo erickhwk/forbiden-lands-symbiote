@@ -29,6 +29,8 @@ var ATTRS = [
 
 var CONDITIONS = [["faminto", "Faminto"], ["sedento", "Desidratado"], ["exausto", "Insone"], ["congelando", "Hipotérmico"]];
 
+var AGES = [["jovem", "Jovem"], ["adulto", "Adulto"], ["idoso", "Idoso"]];
+
 var MAX_SKILL = 5;
 var MAX_ATTR = 6;
 var MAX_WP = 10;
@@ -54,7 +56,15 @@ function defaultSheet() {
     conditions: {},
     gear: [],
     talentList: [],   // [{ id, rank }] do catálogo, ou { id: "custom-…", name, rank }
-    talents: ""       // anotações livres
+    // Histórico
+    age: "",          // "jovem" | "adulto" | "idoso"
+    face: "",
+    body: "",
+    clothes: "",
+    pride: "",
+    darkSecret: "",
+    relationships: "",
+    talents: ""       // anotações livres (o nome da chave ficou da primeira versão)
   };
   ATTRS.forEach(function (a) {
     sheet.attrs[a.key] = { cur: 2, max: 2 };
@@ -68,7 +78,8 @@ function defaultSheet() {
 function migrate(saved) {
   var base = defaultSheet();
   if (!saved || typeof saved !== "object") return base;
-  ["name", "talents"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
+  ["name", "talents", "face", "body", "clothes", "pride", "darkSecret", "relationships"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
+  if (AGES.some(function (a) { return a[0] === saved.age; })) base.age = saved.age;
   base.kin = catalogId(C.KINS, saved.kin);
   base.profession = catalogId(C.PROFESSIONS, saved.profession);
   if (Array.isArray(saved.talentList)) {
@@ -263,7 +274,10 @@ function renderSheet() {
     renderWillpower(),
     renderConditions(),
     renderTabs(),
-    app.tab === "skills" ? renderSkills() : app.tab === "gear" ? renderGear() : renderTalents()
+    app.tab === "skills" ? renderSkills()
+      : app.tab === "gear" ? renderGear()
+      : app.tab === "talents" ? renderTalents()
+      : renderBackground()
   ].join("");
 }
 
@@ -354,7 +368,7 @@ function renderConditions() {
 }
 
 function renderTabs() {
-  var tabs = [["skills", "Perícias"], ["gear", "Equipamento"], ["talents", "Talentos"]];
+  var tabs = [["skills", "Perícias"], ["gear", "Equipamento"], ["talents", "Talentos"], ["background", "Histórico"]];
   return '<nav class="tabs" role="tablist" aria-label="Seções da ficha">' + tabs.map(function (t) {
     return '<button role="tab" data-action="tab" data-tab="' + t[0] + '" aria-selected="' + (app.tab === t[0]) + '">' + t[1] + "</button>";
   }).join("") + "</nav>";
@@ -394,6 +408,9 @@ function renderGear() {
           (broken ? '<span class="badge">Quebrado</span> não dá dados até ser reparado'
             : damaged ? "Danificado · bônus " + g.bonus + " de " + g.base + (g.info ? " · " + esc(g.info) : "")
             : (g.info ? esc(g.info) : "Bônus de Equipamento")) +
+          (g.base != null && g.bonus < g.base
+            ? ' · <button class="link-btn inline" data-action="gearRepair" data-id="' + esc(g.id) + '">Reparar</button>'
+            : "") +
         "</div>" +
       "</div>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="-1" aria-label="Diminuir bônus"' + (g.bonus <= 0 ? " disabled" : "") + ">−</button>" +
@@ -467,8 +484,31 @@ function renderTalents() {
     '<div class="adder"><label for="f-add-talent" class="sr-only">Adicionar talento</label>' +
       '<select id="f-add-talent" class="field grow">' + picker + "</select>" +
       '<button class="btn-add" data-action="talentAdd">Adicionar</button></div>' +
-    '<div><label class="eyebrow" for="f-talents" style="display:block;margin:8px 0">Anotações</label>' +
-    '<textarea id="f-talents" class="field" data-bind="talents" placeholder="Efeitos dos talentos, dívidas, segredos…">' + esc(s.talents) + "</textarea></div>" +
+  "</section>";
+}
+
+function renderBackground() {
+  var s = app.sheet;
+  function text(key, label, hint, rows) {
+    return '<div class="bg-field"><label class="eyebrow" for="f-' + key + '">' + label + "</label>" +
+      (hint ? '<p class="small muted" style="margin:2px 0 6px">' + hint + "</p>" : "") +
+      '<textarea id="f-' + key + '" class="field" rows="' + (rows || 2) + '" data-bind="' + key + '">' + esc(s[key]) + "</textarea></div>";
+  }
+  return '<section role="tabpanel" aria-label="Histórico" class="stack">' +
+    '<div class="bg-field"><span class="eyebrow">Idade</span>' +
+      '<div class="seg" role="group" aria-label="Idade" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px">' +
+      AGES.map(function (a) {
+        return '<button data-action="setAge" data-age="' + a[0] + '" aria-pressed="' + (s.age === a[0]) + '">' + a[1] + "</button>";
+      }).join("") + "</div></div>" +
+    '<h2 class="section-title">Aparência</h2>' +
+    text("face", "Rosto", "", 2) +
+    text("body", "Corpo", "", 2) +
+    text("clothes", "Roupas", "", 2) +
+    '<h2 class="section-title">Quem é</h2>' +
+    text("pride", "Orgulho", "Uma vez por sessão, ao falhar numa rolagem ligada a ele, role um D12 extra. Se falhar mesmo assim, você perde o Orgulho.", 2) +
+    text("darkSecret", "Segredo Sombrio", "", 2) +
+    text("relationships", "Relacionamentos", "Uma linha por personagem da mesa.", 4) +
+    text("talents", "Anotações", "", 6) +
   "</section>";
 }
 
@@ -759,11 +799,28 @@ var actions = {
     save();
   },
 
+  /*
+   * Item inteiro (bônus = bônus de fábrica): o ajuste muda o item, os dois andam juntos.
+   * Item danificado: o ajuste mexe só no bônus atual; ao chegar no de fábrica, volta a ser inteiro.
+   */
   gearBonus: function (el) {
     var g = gearById(el.dataset.id);
     if (!g) return;
+    if (g.base == null) g.base = g.bonus;
+    var intact = g.bonus === g.base;
     g.bonus = clamp(g.bonus + (+el.dataset.delta), 0, 10);
-    if (g.base == null || g.bonus > g.base) g.base = g.bonus;
+    if (intact || g.bonus > g.base) g.base = g.bonus;
+    save();
+  },
+
+  gearRepair: function (el) {
+    var g = gearById(el.dataset.id);
+    if (g && g.base != null) g.bonus = g.base;
+    save();
+  },
+
+  setAge: function (el) {
+    app.sheet.age = app.sheet.age === el.dataset.age ? "" : el.dataset.age;
     save();
   },
 

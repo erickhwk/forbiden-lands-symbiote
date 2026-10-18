@@ -8,8 +8,9 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Aviso claro quando um atributo fica Acabado: o que acontece com o personagem e como ele volta. O chat da mesa também avisa.
 - As 16 perícias, com nível e botão de rolar.
 - Ascendência e profissão escolhidas em lista. A ascendência já adiciona o talento dela.
-- Equipamento escolhido do catálogo, com o Bônus de Equipamento do livro. Item que chega a bônus 0 aparece como quebrado.
-- Talentos escolhidos do catálogo (da ascendência, da profissão e gerais), com categoria 1 a 3, e anotações livres.
+- Equipamento escolhido do catálogo, com o Bônus de Equipamento do livro. Item que chega a bônus 0 aparece como quebrado, e item danificado pode ser reparado com um clique.
+- Talentos escolhidos do catálogo (da ascendência, da profissão e gerais), com categoria 1 a 3.
+- Aba Histórico: idade, aparência (rosto, corpo, roupas), Orgulho, Segredo Sombrio, relacionamentos e anotações.
 - Antes de forçar, a ficha avisa se forçar vai ou pode deixar o atributo Acabado ou quebrar o item.
 - Montagem da rolagem: atributo atual, perícia, modificador (sai dos dados de perícia; abaixo de zero vira dados negativos), equipamento e dado de artefato (d8, d10 ou d12).
 - Rolagem na bandeja do TaleSpire. O resultado nativo fica oculto, porque a soma dos d6 não significa nada no Forbidden Lands, e a ficha posta a interpretação no chat da mesa.
