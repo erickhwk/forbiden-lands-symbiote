@@ -544,3 +544,16 @@ details.late[open] summary { margin-bottom: 8px; }
 .res-note { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
 .res-note.bad { color: #FF9C8C; }
 .res-note svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ---------- Reputação e experiência ---------- */
+
+.repxp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.card.stat { display: flex; flex-direction: column; gap: 8px; }
+.card.stat .btn-icon.sm { width: 36px; height: 36px; }
+.stepper { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.stat-num { font-family: var(--display); font-size: 30px; font-weight: 600; line-height: 1; text-align: center; }
+.stat-of { font-size: 16px; color: var(--muted); }
+.xp-spend { display: flex; gap: 6px; }
+.xp-spend .field { width: 0; flex: 1 1 auto; min-width: 0; height: 36px; padding: 0 8px; }
+.xp-spend .btn-add { height: 36px; padding: 0 10px; font-size: 14px; }
+.res-note.good { color: var(--success); font-weight: 600; }

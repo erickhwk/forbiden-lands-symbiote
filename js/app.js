@@ -34,6 +34,8 @@ var CONDITIONS = [["faminto", "Faminto"], ["sedento", "Desidratado"], ["exausto"
 var AGES = [["jovem", "Jovem"], ["adulto", "Adulto"], ["idoso", "Idoso"]];
 
 var MAX_SKILL = 5;
+var MAX_REP = 10;
+var AGE_REP = { jovem: 0, adulto: 1, idoso: 2 };  // Reputação inicial por idade
 var MAX_ATTR = 6;
 var MAX_WP = 10;
 var LOCAL_KEY = "ficha-forbidden-lands";
@@ -63,6 +65,9 @@ function defaultSheet() {
     face: "",
     body: "",
     clothes: "",
+    reputation: 0,    // 0 a 10 (o livro não tem teto; a ficha para em 10)
+    xp: 0,            // XP disponível para gastar
+    xpTotal: 0,       // XP ganho na vida do personagem
     pride: "",
     prideUsedSession: false,  // já usado nesta sessão
     prideLost: false,         // perdido: falhou mesmo com o Orgulho
@@ -86,6 +91,10 @@ function migrate(saved) {
   ["name", "talents", "face", "body", "clothes", "pride", "darkSecret", "relationships"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
   if (AGES.some(function (a) { return a[0] === saved.age; })) base.age = saved.age;
   base.prideUsedSession = !!saved.prideUsedSession;
+  base.reputation = clamp(saved.reputation | 0, 0, MAX_REP);
+  base.xpTotal = Math.max(0, saved.xpTotal | 0);
+  base.xp = clamp(saved.xp | 0, 0, Math.max(base.xpTotal, saved.xp | 0));
+  if (base.xp > base.xpTotal) base.xpTotal = base.xp;
   base.prideLost = !!saved.prideLost;
   base.kin = catalogId(C.KINS, saved.kin);
   base.profession = catalogId(C.PROFESSIONS, saved.profession);
@@ -327,6 +336,7 @@ function renderSheet() {
     renderBrokenBanner(),
     renderAttrs(),
     renderWillpower(),
+    renderRepXp(),
     renderConditions(),
     renderTabs(),
     app.tab === "skills" ? renderSkills()
@@ -426,6 +436,71 @@ function renderWillpower() {
         return '<button class="btn-spend" data-action="spendWp" data-n="' + n + '" aria-label="Gastar ' + n + ' PFV"' + (wp < n ? " disabled" : "") + ">−" + n + "</button>";
       }).join("") +
     "</div></section>";
+}
+
+function renderRepXp() {
+  var s = app.sheet;
+  return '<section class="repxp" aria-label="Reputação e experiência">' +
+    '<div class="card stat">' +
+      '<div class="row between"><h2 class="eyebrow">Reputação</h2>' +
+        '<button class="btn-icon sm" data-action="repRoll" aria-label="Rolar Reputação" title="Ser reconhecido: role ' + s.reputation + 'd6, um 6 basta"' + (s.reputation ? "" : " disabled") + ">" + ICON.die + "</button></div>" +
+      '<div class="stepper">' +
+        '<button class="btn-step" data-action="rep" data-delta="-1" aria-label="Diminuir Reputação"' + (s.reputation <= 0 ? " disabled" : "") + ">−</button>" +
+        '<span class="stat-num">' + s.reputation + "</span>" +
+        '<button class="btn-step" data-action="rep" data-delta="1" aria-label="Aumentar Reputação"' + (s.reputation >= MAX_REP ? " disabled" : "") + ">+</button>" +
+      "</div>" +
+      (app.lastRep ? '<div class="res-note' + (app.lastRep.known ? " good" : "") + '">' + esc(repText(app.lastRep)) + "</div>"
+        : app.repPending ? '<div class="res-note">' + ICON.tray + "<span>Na bandeja.</span></div>" : "") +
+    "</div>" +
+    '<div class="card stat">' +
+      '<div class="row between" style="min-height:36px"><h2 class="eyebrow">Experiência</h2></div>' +
+      '<div class="stepper">' +
+        '<button class="btn-step" data-action="xp" data-delta="-1" aria-label="Gastar 1 XP"' + (s.xp <= 0 ? " disabled" : "") + ">−</button>" +
+        '<span class="stat-num">' + s.xp + '<span class="stat-of"> / ' + s.xpTotal + "</span></span>" +
+        '<button class="btn-step" data-action="xp" data-delta="1" aria-label="Ganhar 1 XP">+</button>' +
+      "</div>" +
+      '<div class="small muted">disponível / total ganho</div>' +
+      '<div class="xp-spend"><label for="f-xp-spend" class="sr-only">XP a gastar</label>' +
+        '<input id="f-xp-spend" class="field" type="number" min="1" inputmode="numeric" placeholder="XP">' +
+        '<button class="btn-add" data-action="xpSpend"' + (s.xp ? "" : " disabled") + ">Gastar</button></div>" +
+    "</div>" +
+  "</section>";
+}
+
+function repText(r) {
+  return r.known
+    ? "Reconhecido! (" + r.values.join(" ") + ")"
+    : "Ninguém o reconhece (" + r.values.join(" ") + ")";
+}
+
+/* Ser reconhecido: role tantos d6 quanto a Reputação; um 6 basta. */
+function rollReputation() {
+  var n = app.sheet.reputation;
+  if (!n) return;
+  app.lastRep = null;
+  if (!app.ts) {
+    var v = [];
+    for (var i = 0; i < n; i++) v.push(1 + Math.floor(Math.random() * 6));
+    applyReputation(v);
+    return;
+  }
+  TS.dice.putDiceInTray([{ name: "Reputação", roll: n + "d6" }], true).then(function (rollId) {
+    app.resRolls[rollId] = "__rep";
+    app.repPending = true;
+    render();
+  }).catch(function (err) { console.error(err); toast(trayError(err)); });
+}
+
+function applyReputation(values) {
+  app.repPending = false;
+  app.lastRep = { values: values, known: values.indexOf(6) !== -1 };
+  render();
+  if (app.ts) {
+    var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
+    TS.chat.send("<b>" + who + "</b> · Reputação " + app.sheet.reputation + ": " +
+      (app.lastRep.known ? "<color=#E8B84A><b>reconhecido!</b></color>" : "ninguém o reconhece") +
+      " <size=85%><color=#A89C88>(" + values.join(" ") + ")</color></size>", "board").catch(function () {});
+  }
 }
 
 function renderConditions() {
@@ -575,6 +650,15 @@ function useResource(key) {
 function handleResourceRoll(ev) {
   var key = app.resRolls[ev.payload.rollId];
   delete app.resRolls[ev.payload.rollId];
+  if (key === "__rep") {
+    if (ev.kind === "rollResults") {
+      var g = (ev.payload.resultsGroups || []).map(readGroup)[0];
+      if (g && g.values.length) { applyReputation(g.values); return; }
+    }
+    app.repPending = false;
+    render();
+    return;
+  }
   if (ev.kind === "rollResults") {
     var values = (ev.payload.resultsGroups || []).map(readGroup)[0];
     var v = values && values.values[0];
@@ -1148,8 +1232,38 @@ var actions = {
   },
 
   setAge: function (el) {
-    app.sheet.age = app.sheet.age === el.dataset.age ? "" : el.dataset.age;
+    var s = app.sheet, before = AGE_REP[s.age] || 0;
+    s.age = s.age === el.dataset.age ? "" : el.dataset.age;
+    // Reputação ainda no valor inicial da idade anterior: acompanha a nova idade.
+    if (s.reputation === before) s.reputation = AGE_REP[s.age] || 0;
     save();
+  },
+
+  rep: function (el) {
+    app.sheet.reputation = clamp(app.sheet.reputation + (+el.dataset.delta), 0, MAX_REP);
+    save();
+  },
+
+  repRoll: function () { rollReputation(); return false; },
+
+  xp: function (el) {
+    var s = app.sheet, d = +el.dataset.delta;
+    if (d > 0) {
+      s.xp += d; s.xpTotal += d;            // ganhar XP soma nos dois
+    } else {
+      s.xp = Math.max(0, s.xp + d);         // gastar só tira do disponível
+    }
+    save();
+  },
+
+  xpSpend: function () {
+    var input = document.getElementById("f-xp-spend");
+    var n = input ? Math.floor(+input.value) : 0;
+    if (!(n > 0)) { toast("Quanto XP você quer gastar?"); return false; }
+    if (n > app.sheet.xp) { toast("Só há " + app.sheet.xp + " XP disponível."); return false; }
+    app.sheet.xp -= n;
+    save();
+    toast("Gastou " + n + " XP. Restam " + app.sheet.xp + ".");
   },
 
   talentAdd: function () {

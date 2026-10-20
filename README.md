@@ -5,6 +5,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 ## O que tem
 
 - Atributos com dano (clique nos quadradinhos), Força de Vontade e condições.
+- Reputação de 0 a 10, que acompanha a idade (Jovem 0, Adulto 1, Idoso 2) e tem botão para rolar se o personagem é reconhecido. Experiência com XP disponível e total ganho.
 - Aviso claro quando um atributo fica Acabado: o que acontece com o personagem e como ele volta. O chat da mesa também avisa.
 - As 16 perícias, com nível e botão de rolar.
 - Ascendência e profissão escolhidas em lista. A ascendência já adiciona o talento dela.
