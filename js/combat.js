@@ -25,14 +25,22 @@ app.table = { sheets: {}, combat: null, choose: null };
 /* Identidade: mestre ou jogador                                      */
 /* ------------------------------------------------------------------ */
 
+/* Nunca falha: sem a API de jogadores, a ficha abre como jogador comum. */
 function detectRole() {
   if (!app.ts) { app.canGM = true; return Promise.resolve(); }
-  var me = TS.clients.whoAmI().then(function (c) { app.clientId = c.id; }).catch(function () {});
-  var gm = TS.players.whoAmI().then(function (p) {
-    return TS.players.getMoreInfo([p.id]);
-  }).then(function (info) {
-    app.canGM = !!(info && info[0] && info[0].rights && info[0].rights.canGm);
-  }).catch(function () { app.canGM = false; });
+  function safe(fn) {
+    try { return Promise.resolve(fn()).catch(function () {}); } catch (e) { return Promise.resolve(); }
+  }
+  var me = safe(function () {
+    return TS.clients.whoAmI().then(function (c) { app.clientId = c.id; });
+  });
+  var gm = safe(function () {
+    return TS.players.whoAmI().then(function (p) {
+      return TS.players.getMoreInfo([p.id]);
+    }).then(function (info) {
+      app.canGM = !!(info && info[0] && info[0].rights && info[0].rights.canGm);
+    });
+  });
   return Promise.all([me, gm]);
 }
 

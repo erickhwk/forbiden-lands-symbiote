@@ -502,3 +502,45 @@ details.late[open] summary { margin-bottom: 8px; }
   .attrs { grid-template-columns: minmax(0, 1fr); }
   .conds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---------- Carga ---------- */
+
+.load { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); }
+.load-num { font-size: 14px; color: var(--muted); }
+.load-num strong { font-family: var(--display); font-size: 20px; color: var(--text); }
+.load-bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.load-bar span { display: block; height: 100%; background: var(--info); border-radius: 999px; }
+.load.over { border-color: var(--bane); }
+.load.over .load-bar span { background: var(--bane); }
+.load.over .load-num strong { color: #FF9C8C; }
+
+.weight-select {
+  flex-shrink: 0; width: 88px; height: 32px; padding: 0 4px;
+  border-radius: 6px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--muted); font-size: 12px;
+}
+.weight-select.w-pesado { color: var(--text); border-color: var(--border-strong); }
+.weight-select.w-nenhum, .weight-select.w-pequeno { opacity: 0.75; }
+
+.tabs button { position: relative; white-space: nowrap; }
+.dot-warn { position: absolute; top: 6px; right: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--bane); }
+
+/* ---------- Consumíveis ---------- */
+
+.res-row { min-height: 52px; display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--surface-2); }
+.res-row:first-child { border-top: none; }
+.res-row.none .item-name { color: var(--muted); }
+.res-die {
+  width: 46px; height: 36px; flex-shrink: 0;
+  border-radius: 8px; border: 1.5px solid var(--info); background: #1D3236;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 17px; font-weight: 700;
+}
+.res-die.empty { border-color: var(--border); background: transparent; color: var(--muted); }
+.btn-use {
+  height: 36px; padding: 0 14px; flex-shrink: 0;
+  border-radius: 8px; border: 1px solid var(--accent); background: var(--accent-bg); font-weight: 600;
+}
+.res-note { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.res-note.bad { color: #FF9C8C; }
+.res-note svg { width: 16px; height: 16px; flex-shrink: 0; }
