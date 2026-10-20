@@ -18,6 +18,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Carga calculada sozinha: capacidade de Força base × 2 (mais o talento Empacotador), peso de cada item do livro (pequeno, leve, normal, pesado ou sem peso para recipientes) e aviso de sobrecarga com o que ela causa.
 - Equipamento escolhido do catálogo, com o Bônus de Equipamento do livro. Item que chega a bônus 0 aparece como quebrado, e item danificado pode ser reparado com um clique.
 - Talentos escolhidos do catálogo (da ascendência, da profissão e gerais), com categoria 1 a 3.
+- Magia: a aba Magia se preenche pelos caminhos mágicos e suas categorias, com as 68 magias do livro (efeitos resumidos com palavras próprias). Druidas e Feiticeiros ganham a Magia Geral na categoria do caminho mais alto. Lançar escolhe PFV, ingrediente, grimório e lançamento seguro; avisa do lançamento arriscado; rola os Dados Base na bandeja, calcula o Nível de Poder com sobrecarga e ingrediente, conta o Poder Mental do meio-elfo e rola o infortúnio mágico (D66), aplicando dano, condição, Reputação ou ferimento grave.
 - Aba Histórico: idade, aparência (rosto, corpo, roupas), Orgulho, Segredo Sombrio, relacionamentos e anotações.
 - Antes de forçar, a ficha avisa se forçar vai ou pode deixar o atributo Acabado ou quebrar o item.
 - Montagem da rolagem: atributo atual, perícia, modificador (sai dos dados de perícia; abaixo de zero vira dados negativos), equipamento e dado de artefato (d8, d10 ou d12).
@@ -77,6 +78,8 @@ npm test
 - `js/encumbrance.js`: cálculo da carga, também puro.
 - `js/resources.js`: Dados de Recurso, também puro.
 - `js/injuries.js`: tabelas e regras de Ferimentos Graves, também puro.
+- `js/magic.js`: disciplinas, magias, infortúnios e regras de lançamento, também puro.
+- `js/spells.js`: aba Magia e tela de lançar.
 - `js/app.js`: ficha, telas, bandeja de dados, chat e armazenamento.
 - `css/style.css`: visual.
 - `manifest.json`: configuração do Symbiote.

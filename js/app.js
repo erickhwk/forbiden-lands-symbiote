@@ -184,7 +184,8 @@ var app = {
   resRolls: {},       // rollId -> chave do consumível sendo usado na bandeja
   lastRes: null,      // último uso de consumível, para mostrar na aba
   hit: null,          // painel "Fui atingido": { dmg, phase, values, result }
-  view: "sheet",      // "sheet" | "roll"
+  view: "sheet",      // "sheet" | "roll" | "cast"
+  cast: null,         // lançando uma magia (spells.js)
   roll: null
 };
 
@@ -332,6 +333,7 @@ var ICON = {
   star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"></path></svg>',
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
+  spark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"></path></svg>',
   warn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L2.5 20h19L12 3.5z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>',
   cards: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 6V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-5"></path></svg>',
   plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>',
@@ -350,11 +352,12 @@ function render() {
     return;
   }
   var body = app.view === "roll" ? renderRoll()
+    : app.view === "cast" && app.cast ? renderCast()
     : app.mode === "group" && app.canGM ? renderGroup()
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
     : renderSheet();
-  root.innerHTML = '<div class="app">' + (app.view === "roll" ? "" : renderModeBar()) + body + "</div>";
+  root.innerHTML = '<div class="app">' + (app.view === "roll" || app.view === "cast" ? "" : renderModeBar()) + body + "</div>";
 }
 
 function initials(name) {
@@ -379,6 +382,7 @@ function renderSheet() {
     app.tab === "skills" ? renderSkills()
       : app.tab === "gear" ? renderGear()
       : app.tab === "talents" ? renderTalents()
+      : app.tab === "magic" && showMagicTab() ? renderMagic()
       : renderBackground()
   ].join("");
 }
@@ -507,7 +511,9 @@ function applyInjury(table, tens, units) {
   };
   var lasting = injury.instant || injury.lethal || injury.perm || (heal != null && row.effect !== "Nenhum.");
   if (lasting && !injury.instant) s.injuries.push(injury);
-  s.injuryRolled[table === "horror" ? "astucia" : "forca"] = true;
+  // Só marca como rolado se o atributo está Acabado (infortúnio mágico também rola ferimento).
+  var injKey = table === "horror" ? "astucia" : "forca";
+  if (s.attrs[injKey].cur === 0) s.injuryRolled[injKey] = true;
   app.lastInjury = injury;
   injury.stored = lasting && !injury.instant;
   save();
@@ -900,7 +906,9 @@ function renderConditions() {
 }
 
 function renderTabs() {
-  var tabs = [["skills", "Perícias"], ["gear", "Equipamento"], ["talents", "Talentos"], ["background", "Histórico"]];
+  var tabs = [["skills", "Perícias"], ["gear", "Equipamento"], ["talents", "Talentos"]];
+  if (showMagicTab()) tabs.push(["magic", "Magia"]);
+  tabs.push(["background", "Histórico"]);
   return '<nav class="tabs" role="tablist" aria-label="Seções da ficha">' + tabs.map(function (t) {
     var warn = t[0] === "gear" && loadStatus().over;
     return '<button role="tab" data-action="tab" data-tab="' + t[0] + '" aria-selected="' + (app.tab === t[0]) + '"' +
@@ -1074,6 +1082,7 @@ function useResource(key) {
 function handleResourceRoll(ev) {
   var key = app.resRolls[ev.payload.rollId];
   delete app.resRolls[ev.payload.rollId];
+  if (key === "__cast" || key === "__mishap") { handleCastRoll(key, ev); return; }
   if (key && key.indexOf("__inj:") === 0) {
     if (ev.kind === "rollResults") {
       var groups = (ev.payload.resultsGroups || []).map(readGroup);

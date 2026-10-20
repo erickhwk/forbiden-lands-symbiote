@@ -17,6 +17,7 @@ Nas imagens estão Ylva Corvo-de-Cinza, uma caçadora humana, e Tyrgar Pedra-Fun
   - [Equipamento, carga e moedas](#equipamento-carga-e-moedas)
   - [Consumíveis](#consumíveis)
   - [Talentos](#talentos)
+  - [Magia](#magia)
   - [Reputação, XP e Evoluir](#reputação-xp-e-evoluir)
   - [Cópia de segurança](#cópia-de-segurança)
 - **Para o Mestre**
@@ -235,6 +236,48 @@ O resultado vai para o chat. Achou ou comprou uma unidade? Use o **+** para subi
 Na aba **Talentos**, escolha da lista (de ascendência, de profissão e gerais) e clique em **Adicionar**. Use − e + para a categoria (1 a 3). O × remove o talento.
 
 O talento da ascendência entra sozinho. Rápido como um Raio e Empacotador já mudam a iniciativa e a carga.
+
+<br clear="right">
+
+## Magia
+
+<img src="img/28-magia.png" width="330" align="right">
+
+A aba **Magia** aparece para Druidas, Feiticeiros e para quem tiver algum caminho mágico. Ela se monta sozinha a partir dos caminhos e das categorias deles:
+
+- Cada caminho abre as magias da disciplina dele até a sua categoria. Por exemplo, Caminho do Sangue 2 abre as magias de Sangue de categoria 1 e 2.
+- Druidas e Feiticeiros ganham também a **Magia Geral**, na categoria do caminho mais alto. Com Sangue 2 e Morte 1, a Magia Geral vai até a categoria 2.
+- Escolha o caminho em **Adicionar caminho** e ajuste a categoria com − e +. No modo Evoluir, o custo em XP aparece ali também.
+- Toque no nome da magia para ver o efeito, o alcance, a duração e o ingrediente.
+- **Uma categoria acima** guarda as magias que você só consegue lançar de forma arriscada.
+
+<br clear="right">
+
+<img src="img/29-lancar-magia.png" width="330" align="right">
+
+**Lançar** abre a tela da magia:
+
+- **Força de Vontade**: quantos PFV gastar. Esse é o Nível de Poder básico, e também o número de Dados Base. O meio-elfo com Poder Mental já conta um a mais.
+- **Ingrediente**: soma 1 ao poder e é gasto. No Simbolismo, o ingrediente é o símbolo desenhado ou gravado.
+- **Do grimório**: a magia conta como uma categoria abaixo. Em combate, ler custa uma ação rápida.
+- **Lançamento seguro**: aparece quando a magia está abaixo da sua categoria. Cada ponto de diferença deixa rolar um dado a menos. Com zero dados, a magia só funciona.
+- Uma magia uma categoria acima da sua mostra o aviso de **lançamento arriscado**: o infortúnio é garantido.
+
+Coloque na bandeja e jogue os Dados Base.
+
+<br clear="right">
+
+<img src="img/30-poder.png" width="330" align="right">
+
+O resultado mostra o **Nível de Poder** final:
+
+- os PFV gastos, que já saem da ficha;
+- cada 6 soma 1 de **sobrecarga**;
+- o ingrediente soma 1.
+
+Se sair algum 1, ou se o lançamento foi arriscado, vem o **infortúnio mágico**. Clique em **Rolar infortúnio (D66)** e jogue a dezena e a unidade. A ficha aplica sozinha o que for mecânico: dano no atributo, a condição ou +1 de Reputação. Quando o infortúnio pede um ferimento grave, aparece o botão para rolá-lo. O resto fica para você e o Mestre.
+
+Tudo vai para o chat da mesa. A rolagem de magia não pode ser forçada.
 
 <br clear="right">
 

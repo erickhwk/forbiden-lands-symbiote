@@ -630,3 +630,19 @@ textarea.field.mono { min-height: 0; font-family: ui-monospace, "Cascadia Mono",
 .member-inj { display: flex; flex-direction: column; gap: 4px; }
 .member-res { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .warn-text { color: #FF9C8C; }
+
+/* Magia */
+.stack-sm { display: flex; flex-direction: column; gap: 8px; }
+.spell-intro .list-row:first-of-type { border-top: none; }
+.spell-group h3 { margin: 0; font-family: var(--display); font-size: 16px; font-weight: 600; }
+.spell-group > .row { margin-bottom: 2px; }
+.spell-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+.spell-row.risky .item-name { color: var(--muted); }
+.spell-row > .btn-add { flex-shrink: 0; }
+details.spell { flex: 1 1 auto; min-width: 0; }
+details.spell summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 36px; }
+details.spell summary::-webkit-details-marker { display: none; }
+details.spell summary .item-name { margin-right: 2px; }
+details.spell[open] summary .item-name { color: var(--accent); }
+.spell-body { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; }
+.spell-group details.late .spell-row:first-child { border-top: none; }
