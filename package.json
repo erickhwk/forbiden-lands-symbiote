@@ -5,6 +5,6 @@
   "description": "Ficha de Forbidden Lands como Symbiote do TaleSpire",
   "license": "MIT",
   "scripts": {
-    "test": "node --test test/engine.test.js test/encumbrance.test.js"
+    "test": "node --test test/engine.test.js test/encumbrance.test.js test/resources.test.js"
   }
 }

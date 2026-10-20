@@ -14,6 +14,7 @@
 var E = window.FLEngine;
 var C = window.FLCatalog;
 var W = window.FLEncumbrance;
+var R = window.FLResources;
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -67,6 +68,7 @@ function defaultSheet() {
     prideLost: false,         // perdido: falhou mesmo com o Orgulho
     darkSecret: "",
     relationships: "",
+    resources: R.empty(), // Dados de Recurso: { comida: 8, agua: 6, ... } (0 = não tem)
     talents: ""       // anotações livres (o nome da chave ficou da primeira versão)
   };
   ATTRS.forEach(function (a) {
@@ -103,6 +105,9 @@ function migrate(saved) {
     });
   });
   CONDITIONS.forEach(function (c) { if (saved.conditions) base.conditions[c[0]] = !!saved.conditions[c[0]]; });
+  if (saved.resources && typeof saved.resources === "object") {
+    R.KINDS.forEach(function (k) { base.resources[k.key] = R.norm(saved.resources[k.key]); });
+  }
   if (Array.isArray(saved.gear)) {
     base.gear = saved.gear.map(function (g) {
       var bonus = clamp(g.bonus | 0, 0, 10);
@@ -117,6 +122,13 @@ function migrate(saved) {
       return out;
     });
   }
+  // A versão de teste da carga tinha consumíveis como itens: viram Dados de Recurso.
+  base.gear = base.gear.filter(function (g) {
+    var k = R.KINDS.filter(function (x) { return x.name === g.name; })[0];
+    if (!k || g.info.indexOf("Consumível") !== 0) return true;
+    if (!base.resources[k.key]) base.resources[k.key] = 6;
+    return false;
+  });
   return base;
 }
 
@@ -129,6 +141,8 @@ var app = {
   ts: false,          // API do TaleSpire disponível
   sheet: defaultSheet(),
   tab: "skills",
+  resRolls: {},       // rollId -> chave do consumível sendo usado na bandeja
+  lastRes: null,      // último uso de consumível, para mostrar na aba
   view: "sheet",      // "sheet" | "roll"
   roll: null
 };
@@ -471,12 +485,93 @@ function renderGear() {
 
   return '<section role="tabpanel" aria-label="Equipamento" class="stack">' +
     renderLoad() +
+    renderResources() +
+    '<h2 class="section-title">Itens</h2>' +
     '<div class="list">' + (rows || '<p class="muted" style="margin:0">Nenhum item ainda.</p>') + "</div>" +
     '<div class="adder"><label for="f-add-gear" class="sr-only">Adicionar item</label>' +
       '<select id="f-add-gear" class="field grow">' + picker + "</select>" +
       '<button class="btn-add" data-action="gearAdd">Adicionar</button></div>' +
     '<p class="small muted" style="margin:0">O Bônus de Equipamento vira dados na rolagem. Se você forçar e tirar 1 neles, o bônus cai; em 0 o item quebra. Mochila, saco, cantil e aljava não contam na carga.</p>' +
   "</section>";
+}
+
+/* ---------- Consumíveis (Dados de Recurso) ---------- */
+
+function renderResources() {
+  var res = app.sheet.resources;
+  var busy = Object.keys(app.resRolls).length > 0;
+  var rows = R.KINDS.map(function (k) {
+    var d = res[k.key];
+    var pending = Object.keys(app.resRolls).some(function (id) { return app.resRolls[id] === k.key; });
+    var last = app.lastRes && app.lastRes.key === k.key ? app.lastRes : null;
+    var note = "";
+    if (pending) note = '<div class="res-note">' + ICON.tray + "<span>D" + d + " na bandeja. Jogue no tabuleiro.</span></div>";
+    else if (last) note = '<div class="res-note' + (last.dropped ? " bad" : "") + '">' + esc(resText(last)) + "</div>";
+    return '<div class="res-row' + (d ? "" : " none") + '">' +
+      '<div class="grow"><div class="item-name">' + k.name + "</div>" + note + "</div>" +
+      '<button class="btn-step" data-action="resStep" data-key="' + k.key + '" data-delta="-1" aria-label="Diminuir Dado de Recurso de ' + k.name + '"' + (d ? "" : " disabled") + ">−</button>" +
+      '<span class="res-die' + (d ? "" : " empty") + '" aria-label="' + (d ? "D" + d : "sem dado") + '">' + (d ? "D" + d : "—") + "</span>" +
+      '<button class="btn-step" data-action="resStep" data-key="' + k.key + '" data-delta="1" aria-label="Aumentar Dado de Recurso de ' + k.name + '"' + (d >= 12 ? " disabled" : "") + ">+</button>" +
+      '<button class="btn-use" data-action="resUse" data-key="' + k.key + '"' + (d && !busy ? "" : " disabled") + ">Usar</button>" +
+    "</div>";
+  }).join("");
+  return '<section class="stack res" aria-label="Consumíveis">' +
+    '<div class="row between"><h2 class="section-title" style="margin:0">Consumíveis</h2>' +
+    '<span class="small muted">cada um com dado vale 1 item</span></div>' +
+    '<div class="list">' + rows + "</div>" +
+    '<p class="small muted" style="margin:0">Ao usar, rola o Dado de Recurso: com 1 ou 2 ele desce um passo, e no D6 o recurso acaba. Achou ou comprou uma unidade? Use o + para subir um passo.</p>' +
+  "</section>";
+}
+
+function resText(u) {
+  var k = R.kind(u.key);
+  if (!u.dropped) return "Rolou " + u.value + " no D" + u.before + ": continua D" + u.before + ".";
+  if (u.empty) return "Rolou " + u.value + " no D6: " + k.gone + ".";
+  return "Rolou " + u.value + " no D" + u.before + ": desceu para D" + u.after + ".";
+}
+
+function useResource(key) {
+  var sides = app.sheet.resources[key];
+  if (!sides) return;
+  if (!app.ts) { applyResource(key, R.roll(sides)); return; }
+  var k = R.kind(key);
+  app.lastRes = null;
+  TS.dice.putDiceInTray([{ name: k.name, roll: "1d" + sides }], true).then(function (rollId) {
+    app.resRolls[rollId] = key;
+    render();
+  }).catch(function (err) {
+    console.error(err);
+    toast(trayError(err));
+  });
+}
+
+function handleResourceRoll(ev) {
+  var key = app.resRolls[ev.payload.rollId];
+  delete app.resRolls[ev.payload.rollId];
+  if (ev.kind === "rollResults") {
+    var values = (ev.payload.resultsGroups || []).map(readGroup)[0];
+    var v = values && values.values[0];
+    if (v != null) { applyResource(key, v); return; }
+  }
+  render();
+}
+
+function applyResource(key, value) {
+  var u = R.use(app.sheet.resources[key], value);
+  if (!u) return;
+  u.key = key;
+  app.sheet.resources[key] = u.after;
+  app.lastRes = u;
+  save();
+  render();
+  if (app.ts) {
+    var k = R.kind(key);
+    var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
+    var tail = !u.dropped ? "continua D" + u.before
+      : u.empty ? "<color=#E0604E><b>" + k.gone + "</b></color>"
+      : "<color=#E0604E>desceu para D" + u.after + "</color>";
+    TS.chat.send("<b>" + who + "</b> " + k.verb + " · D" + u.before + ": " + u.value + " · " + tail, "board").catch(function () {});
+  }
 }
 
 function weightSelect(g) {
@@ -623,7 +718,10 @@ function packerRank() {
 
 function loadStatus() {
   var s = app.sheet;
-  return W.status(s.gear, s.attrs.forca.max, packerRank());
+  // Cada consumível que ainda tem dado conta como um item normal.
+  var consumables = R.KINDS.filter(function (k) { return s.resources[k.key] > 0; })
+    .map(function () { return { weight: "normal" }; });
+  return W.status(s.gear.concat(consumables), s.attrs.forca.max, packerRank());
 }
 
 /* Itens com Bônus de Equipamento (os que podem entrar numa rolagem). */
@@ -1001,6 +1099,15 @@ var actions = {
     save();
   },
 
+  resStep: function (el) {
+    var k = el.dataset.key;
+    app.sheet.resources[k] = R.step(app.sheet.resources[k], +el.dataset.delta);
+    if (app.lastRes && app.lastRes.key === k) app.lastRes = null;
+    save();
+  },
+
+  resUse: function (el) { useResource(el.dataset.key); return false; },
+
   gearGiveBonus: function (el) {
     var g = gearById(el.dataset.id);
     if (g) { g.nb = false; g.bonus = 1; g.base = 1; }
@@ -1156,7 +1263,18 @@ document.addEventListener("change", function (ev) {
     return;
   }
   if (field === "kin") { setKin(el.value); save(); render(); return; }
-  if (field === "profession") { app.sheet.profession = el.value; save(); render(); return; }
+  if (field === "profession") {
+    app.sheet.profession = el.value;
+    var res = app.sheet.resources;
+    // Ficha nova (sem comida nem água): preenche os dados iniciais da profissão.
+    var fresh = !res.comida && !res.agua;
+    if (fresh && el.value && R.START[el.value]) {
+      var start = R.startFor(el.value);
+      R.KINDS.forEach(function (k) { if (!res[k.key]) res[k.key] = start[k.key]; });
+      toast("Dados de Recurso iniciais de " + C.profession(el.value).name + " na aba Equipamento.");
+    }
+    save(); render(); return;
+  }
   if (el.dataset && el.dataset.bind === "roll.gear" && app.roll) {
     app.roll.gearId = el.value || null;
     app.lastGearId = app.roll.gearId;
@@ -1241,6 +1359,7 @@ function markFresh(dice, indices) {
 
 /* Chamado pelo TaleSpire (nome declarado no manifest.json). */
 function handleRollResult(ev) {
+  if (ev && ev.payload && app.resRolls[ev.payload.rollId]) { handleResourceRoll(ev); return; }
   var r = app.roll;
   if (!r || !ev || !ev.payload || !r.rollId || ev.payload.rollId !== r.rollId) return;
 
