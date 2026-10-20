@@ -201,7 +201,8 @@ function afterCombatChange(opts) {
 /* ------------------------------------------------------------------ */
 
 function renderModeBar() {
-  if (!app.canGM) return "";
+  // Fora do TaleSpire não há mesa: sem painel do Mestre.
+  if (!app.canGM || !app.ts) return "";
   var alert = groupAlerts().length;
   return '<nav class="modes" aria-label="Painel do Mestre">' +
     '<button data-action="mode" data-mode="group" aria-pressed="' + (app.mode === "group") + '">Grupo' +

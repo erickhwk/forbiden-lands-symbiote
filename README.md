@@ -92,4 +92,6 @@ npm test
 
 Os nomes de perícias, condições, ascendências, profissões, talentos e itens seguem o Manual do Jogador da edição brasileira. O catálogo fica em `js/catalog.js`, só com nomes e números.
 
+As fontes Spectral e IBM Plex Sans Condensed vão embutidas na pasta `fonts/`, sob a SIL Open Font License 1.1.
+
 Forbidden Lands é marca da Free League Publishing. Este é um projeto de fã, sem afiliação.
