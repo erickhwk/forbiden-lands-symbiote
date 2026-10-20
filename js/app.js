@@ -13,6 +13,7 @@
 
 var E = window.FLEngine;
 var C = window.FLCatalog;
+var W = window.FLEncumbrance;
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -106,7 +107,14 @@ function migrate(saved) {
     base.gear = saved.gear.map(function (g) {
       var bonus = clamp(g.bonus | 0, 0, 10);
       var base = g.base == null ? bonus : clamp(g.base | 0, bonus, 10);
-      return { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base, info: String(g.info || "") };
+      var out = { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base, info: String(g.info || "") };
+      // Fichas antigas não marcavam itens sem bônus: usa o catálogo, ou bônus 0 sem histórico.
+      var cat = C.gearByName && C.gearByName(out.name);
+      out.nb = g.nb != null ? !!g.nb : cat ? cat.bonus == null : (bonus === 0 && base === 0);
+      if (out.nb) { out.bonus = 0; out.base = 0; }
+      out.weight = W.WEIGHTS[g.weight] ? g.weight : guessWeight(out.name);
+      if (!out.info && cat && cat.info) out.info = cat.info;
+      return out;
     });
   }
   return base;
@@ -389,7 +397,9 @@ function renderConditions() {
 function renderTabs() {
   var tabs = [["skills", "Perícias"], ["gear", "Equipamento"], ["talents", "Talentos"], ["background", "Histórico"]];
   return '<nav class="tabs" role="tablist" aria-label="Seções da ficha">' + tabs.map(function (t) {
-    return '<button role="tab" data-action="tab" data-tab="' + t[0] + '" aria-selected="' + (app.tab === t[0]) + '">' + t[1] + "</button>";
+    var warn = t[0] === "gear" && loadStatus().over;
+    return '<button role="tab" data-action="tab" data-tab="' + t[0] + '" aria-selected="' + (app.tab === t[0]) + '"' +
+      (warn ? ' title="Sobrecarregado"' : "") + ">" + t[1] + (warn ? ' <span class="dot-warn" aria-label="sobrecarregado"></span>' : "") + "</button>";
   }).join("") + "</nav>";
 }
 
@@ -418,24 +428,32 @@ function renderSkills() {
 
 function renderGear() {
   var rows = app.sheet.gear.map(function (g) {
-    var broken = g.bonus === 0;
-    var damaged = g.base != null && g.bonus < g.base;
-    return '<div class="list-row' + (broken ? " broken" : "") + '">' +
-      '<div class="grow">' +
-        '<input class="plain-input" data-bind="gear.name" data-id="' + esc(g.id) + '" aria-label="Nome do item" placeholder="Nome do item" value="' + esc(g.name) + '">' +
-        '<div class="small muted">' +
-          (broken ? '<span class="badge">Quebrado</span> não dá dados até ser reparado'
-            : damaged ? "Danificado · bônus " + g.bonus + " de " + g.base + (g.info ? " · " + esc(g.info) : "")
-            : (g.info ? esc(g.info) : "Bônus de Equipamento")) +
-          (g.base != null && g.bonus < g.base
-            ? ' · <button class="link-btn inline" data-action="gearRepair" data-id="' + esc(g.id) + '">Reparar</button>'
-            : "") +
-        "</div>" +
-      "</div>" +
+    var broken = !g.nb && g.bonus === 0;
+    var damaged = !g.nb && g.base != null && g.bonus < g.base;
+    var sub;
+    if (g.nb) sub = g.info ? esc(g.info) : "Sem Bônus de Equipamento";
+    else if (broken) sub = '<span class="badge">Quebrado</span> não dá dados até ser reparado';
+    else if (damaged) sub = "Danificado · bônus " + g.bonus + " de " + g.base + (g.info ? " · " + esc(g.info) : "");
+    else sub = g.info ? esc(g.info) : "Bônus de Equipamento";
+    if (damaged) sub += ' · <button class="link-btn inline" data-action="gearRepair" data-id="' + esc(g.id) + '">Reparar</button>';
+    // Só itens fora do catálogo podem ganhar bônus (os do livro já vêm certos).
+    if (g.nb && !(C.gearByName && C.gearByName(g.name))) {
+      sub += ' · <button class="link-btn inline" data-action="gearGiveBonus" data-id="' + esc(g.id) + '">Tem bônus</button>';
+    }
+
+    var controls = g.nb ? "" :
       '<button class="btn-step btn-damage" data-action="gearDamage" data-id="' + esc(g.id) + '" title="Danificar (−1 de bônus)" aria-label="Danificar ' + esc(g.name || "item") + ', menos 1 de bônus"' + (g.bonus <= 0 ? " disabled" : "") + ">" + ICON.crack + "</button>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="-1" aria-label="Diminuir bônus"' + (g.bonus <= 0 ? " disabled" : "") + ">−</button>" +
       '<span class="level" aria-label="Bônus ' + g.bonus + '">' + g.bonus + "</span>" +
-      '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="1" aria-label="Aumentar bônus">+</button>' +
+      '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="1" aria-label="Aumentar bônus">+</button>';
+
+    return '<div class="list-row' + (broken ? " broken" : "") + '">' +
+      '<div class="grow">' +
+        '<input class="plain-input" data-bind="gear.name" data-id="' + esc(g.id) + '" aria-label="Nome do item" placeholder="Nome do item" value="' + esc(g.name) + '">' +
+        '<div class="small muted">' + sub + "</div>" +
+      "</div>" +
+      weightSelect(g) +
+      controls +
       '<button class="btn-icon sm" data-action="gearRemove" data-id="' + esc(g.id) + '" aria-label="Remover ' + esc(g.name || "item") + '">' + ICON.close + "</button>" +
     "</div>";
   }).join("");
@@ -443,18 +461,48 @@ function renderGear() {
   var picker = '<option value="">Escolha um item…</option>' +
     C.GEAR.map(function (grp) {
       return '<optgroup label="' + esc(grp.group) + '">' + grp.items.map(function (it) {
-        return '<option value="' + it.id + '">' + esc(it.name) + (it.bonus != null ? " (bônus " + it.bonus + ")" : "") + "</option>";
+        var bits = [];
+        if (it.bonus != null) bits.push("bônus " + it.bonus);
+        if (it.weight && it.weight !== "normal") bits.push(W.WEIGHTS[it.weight].label.toLowerCase());
+        return '<option value="' + it.id + '">' + esc(it.name) + (bits.length ? " (" + bits.join(", ") + ")" : "") + "</option>";
       }).join("") + "</optgroup>";
     }).join("") +
     '<option value="__custom">Outro item (escrever o nome)</option>';
 
   return '<section role="tabpanel" aria-label="Equipamento" class="stack">' +
-    '<p class="small muted" style="margin:0">O Bônus de Equipamento vira dados na rolagem. Se você forçar e tirar 1 neles, o bônus cai; em 0 o item quebra.</p>' +
+    renderLoad() +
     '<div class="list">' + (rows || '<p class="muted" style="margin:0">Nenhum item ainda.</p>') + "</div>" +
     '<div class="adder"><label for="f-add-gear" class="sr-only">Adicionar item</label>' +
       '<select id="f-add-gear" class="field grow">' + picker + "</select>" +
       '<button class="btn-add" data-action="gearAdd">Adicionar</button></div>' +
+    '<p class="small muted" style="margin:0">O Bônus de Equipamento vira dados na rolagem. Se você forçar e tirar 1 neles, o bônus cai; em 0 o item quebra. Mochila, saco, cantil e aljava não contam na carga.</p>' +
   "</section>";
+}
+
+function weightSelect(g) {
+  return '<label class="sr-only" for="w-' + esc(g.id) + '">Peso de ' + esc(g.name || "item") + "</label>" +
+    '<select id="w-' + esc(g.id) + '" class="weight-select w-' + g.weight + '" data-weight="' + esc(g.id) + '" title="Peso na carga">' +
+    W.ORDER.map(function (k) {
+      return '<option value="' + k + '"' + (g.weight === k ? " selected" : "") + ">" + W.WEIGHTS[k].label + "</option>";
+    }).join("") + "</select>";
+}
+
+function renderLoad() {
+  var st = loadStatus();
+  var cap = Math.max(st.capacity, 1);
+  var pct = Math.min(100, (st.used / cap) * 100);
+  var detail = "Força " + app.sheet.attrs.forca.max + " × 2" + (st.packerBonus ? " + Empacotador " + st.packerBonus : "");
+  var html = '<section class="load' + (st.over ? " over" : "") + '" aria-label="Carga">' +
+    '<div class="row between"><span class="eyebrow">Carga</span>' +
+      '<span class="load-num"><strong>' + W.fmt(st.used) + "</strong> de " + st.capacity + " itens</span></div>" +
+    '<div class="load-bar" role="meter" aria-valuemin="0" aria-valuemax="' + st.capacity + '" aria-valuenow="' + st.used + '" aria-label="Carga ' + W.fmt(st.used) + " de " + st.capacity + '"><span style="width:' + pct + '%"></span></div>' +
+    '<div class="small muted">' + detail + (st.over ? "" : " · cabem mais " + W.fmt(st.free)) + "</div>" +
+  "</section>";
+  if (st.over) {
+    html += '<div class="banner" role="alert"><div class="banner-title">' + ICON.warn + "<span>Sobrecarregado</span></div>" +
+      '<div class="banner-item">' + W.fmt(st.used - st.capacity) + " acima da capacidade. Para correr em combate ou caminhar por um Quarto de Dia, role Resiliência. Se falhar, largue o que carrega, fique parado ou sofra 1 de dano em Agilidade.</div></div>";
+  }
+  return html;
 }
 
 function renderTalents() {
@@ -562,6 +610,25 @@ function currentPool(r) {
   });
 }
 
+/* Fichas antigas não tinham peso: usa o do catálogo pelo nome, ou normal. */
+function guessWeight(name) {
+  var it = C.gearByName && C.gearByName(name);
+  return it && it.weight ? it.weight : "normal";
+}
+
+function packerRank() {
+  var t = app.sheet.talentList.filter(function (x) { return x.id === "empacotador"; })[0];
+  return t ? t.rank : 0;
+}
+
+function loadStatus() {
+  var s = app.sheet;
+  return W.status(s.gear, s.attrs.forca.max, packerRank());
+}
+
+/* Itens com Bônus de Equipamento (os que podem entrar numa rolagem). */
+function bonusGear() { return app.sheet.gear.filter(function (g) { return !g.nb; }); }
+
 function talentById(id) { return app.sheet.talentList.filter(function (t) { return t.id === id; })[0] || null; }
 
 function focusLast(selector) {
@@ -637,7 +704,7 @@ function renderRoll() {
     '<span class="count">' + (gear ? gear.bonus : 0) + "</span></div>" +
     '<label for="f-gear" style="position:absolute;left:-9999px">Equipamento usado</label>' +
     '<select id="f-gear" class="field" data-bind="roll.gear"' + (busy ? " disabled" : "") + '><option value="">Sem equipamento</option>' +
-    app.sheet.gear.map(function (g) {
+    bonusGear().map(function (g) {
       return '<option value="' + esc(g.id) + '"' + (g.id === r.gearId ? " selected" : "") + ">" + esc(g.name || "Item sem nome") + (g.bonus === 0 ? " (quebrado)" : " (bônus " + g.bonus + ")") + "</option>";
     }).join("") + "</select></div>";
 
@@ -900,11 +967,12 @@ var actions = {
     var value = sel ? sel.value : "";
     if (!value) { toast("Escolha um item na lista."); return false; }
     if (value === "__custom") {
-      app.sheet.gear.push({ id: uid(), name: "", bonus: 1, base: 1 });
+      app.sheet.gear.push({ id: uid(), name: "", bonus: 0, base: 0, nb: true, weight: "normal" });
       focusLast('[data-bind="gear.name"]');
     } else {
       var it = C.gear(value);
-      app.sheet.gear.push({ id: uid(), name: it.name, bonus: it.bonus, base: it.bonus, info: it.info || "" });
+      var nb = it.bonus == null;
+      app.sheet.gear.push({ id: uid(), name: it.name, bonus: nb ? 0 : it.bonus, base: nb ? 0 : it.bonus, nb: nb, weight: it.weight || "normal", info: it.info || "" });
     }
     save();
   },
@@ -930,6 +998,12 @@ var actions = {
     if (g.base == null) g.base = g.bonus;
     g.bonus -= 1;
     toast((g.name || "Item") + (g.bonus === 0 ? " quebrou." : " perdeu 1 de bônus (" + g.bonus + " de " + g.base + ")."));
+    save();
+  },
+
+  gearGiveBonus: function (el) {
+    var g = gearById(el.dataset.id);
+    if (g) { g.nb = false; g.bonus = 1; g.base = 1; }
     save();
   },
 
@@ -1076,6 +1150,11 @@ document.addEventListener("input", function (ev) {
 document.addEventListener("change", function (ev) {
   var el = ev.target;
   var field = el.dataset && el.dataset.select;
+  if (el.dataset && el.dataset.weight) {
+    var gw = gearById(el.dataset.weight);
+    if (gw && W.WEIGHTS[el.value]) { gw.weight = el.value; save(); render(); }
+    return;
+  }
   if (field === "kin") { setKin(el.value); save(); render(); return; }
   if (field === "profession") { app.sheet.profession = el.value; save(); render(); return; }
   if (el.dataset && el.dataset.bind === "roll.gear" && app.roll) {

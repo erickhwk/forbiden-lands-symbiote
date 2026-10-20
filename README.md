@@ -8,6 +8,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Aviso claro quando um atributo fica Acabado: o que acontece com o personagem e como ele volta. O chat da mesa também avisa.
 - As 16 perícias, com nível e botão de rolar.
 - Ascendência e profissão escolhidas em lista. A ascendência já adiciona o talento dela.
+- Carga calculada sozinha: capacidade de Força base × 2 (mais o talento Empacotador), peso de cada item do livro (pequeno, leve, normal, pesado ou sem peso para recipientes) e aviso de sobrecarga com o que ela causa.
 - Equipamento escolhido do catálogo, com o Bônus de Equipamento do livro. Item que chega a bônus 0 aparece como quebrado, e item danificado pode ser reparado com um clique.
 - Talentos escolhidos do catálogo (da ascendência, da profissão e gerais), com categoria 1 a 3.
 - Aba Histórico: idade, aparência (rosto, corpo, roupas), Orgulho, Segredo Sombrio, relacionamentos e anotações.
@@ -58,6 +59,7 @@ npm test
 ## Estrutura
 
 - `js/engine.js`: motor de regras puro, sem DOM nem API do TaleSpire. Dá para reaproveitar em outra interface.
+- `js/encumbrance.js`: cálculo da carga, também puro.
 - `js/app.js`: ficha, telas, bandeja de dados, chat e armazenamento.
 - `css/style.css`: visual.
 - `manifest.json`: configuração do Symbiote.
