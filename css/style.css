@@ -609,3 +609,4 @@ textarea.field.mono { min-height: 0; font-family: ui-monospace, "Cascadia Mono",
 .card.session { display: flex; flex-direction: column; gap: 10px; border-color: var(--success); }
 .checks { display: flex; flex-direction: column; gap: 8px; }
 .check.feat { padding-top: 8px; border-top: 1px solid var(--border); }
+.btn-ghost.danger-text { color: #FF9C8C; border-color: #6B3A2E; }

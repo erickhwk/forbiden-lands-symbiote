@@ -369,7 +369,6 @@ function renderSheet() {
     renderArmor(),
     renderInjuries(),
     renderWillpower(),
-    renderRepXp(),
     renderConditions(),
     renderEvolveBar(),
     renderTabs(),
@@ -1243,6 +1242,7 @@ function renderBackup() {
     '<div class="row" style="gap:8px;flex-wrap:wrap">' +
       '<button class="btn-add" data-action="backupExport">' + ICON.copy + "Exportar ficha</button>" +
       '<button class="btn-ghost slim" data-action="backupOpenImport">Importar ficha</button>' +
+      '<button class="btn-ghost slim danger-text" data-action="clearAsk">Limpar ficha</button>' +
     "</div>";
 
   if (b.exported) {
@@ -1251,6 +1251,13 @@ function renderBackup() {
       '<textarea id="f-export" class="field mono" rows="4" readonly>' + esc(b.exported) + "</textarea></div>";
   }
 
+  if (b.clearing) {
+    html += '<div class="banner"><div class="banner-title">' + ICON.warn + "<span>Apagar a ficha inteira?</span></div>" +
+      '<div class="banner-item">Tudo de <strong>' + esc(app.sheet.name || "sem nome") + "</strong> nesta campanha volta ao começo: atributos, perícias, equipamento, talentos, histórico, XP. Não dá para desfazer, a não ser importando uma cópia. Exporte antes, se quiser guardar.</div>" +
+      '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn-add" data-action="backupExport">' + ICON.copy + "Exportar antes</button>" +
+      '<button class="btn-add danger" data-action="clearConfirm">Apagar</button>' +
+      '<button class="btn-ghost slim" data-action="backupCancel">Cancelar</button></div></div>';
+  }
   if (b.importing) {
     html += '<div class="bg-field"><label class="eyebrow" for="f-import">Colar ficha</label>' +
       '<textarea id="f-import" class="field mono" rows="4" placeholder="Cole aqui o texto exportado">' + esc(b.text || "") + "</textarea></div>";
@@ -1287,6 +1294,8 @@ function renderBackground() {
       '<textarea id="f-' + key + '" class="field" rows="' + (rows || 2) + '" data-bind="' + key + '">' + esc(s[key]) + "</textarea></div>";
   }
   return '<section role="tabpanel" aria-label="Histórico" class="stack">' +
+    '<h2 class="section-title" style="margin-top:0">Reputação e Experiência</h2>' +
+    renderRepXp() +
     '<div class="bg-field"><span class="eyebrow">Idade</span>' +
       '<div class="seg" role="group" aria-label="Idade" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px">' +
       AGES.map(function (a) {
@@ -1881,7 +1890,7 @@ var actions = {
 
   evolveStart: function () {
     app.evolve = { log: [] };
-    if (app.tab !== "talents") app.tab = "skills";
+    app.tab = "skills";
     setTimeout(function () {
       var bar = document.querySelector(".evolve-bar");
       if (bar && bar.scrollIntoView) bar.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -2013,7 +2022,8 @@ var actions = {
 
   backupExport: function () {
     var text = exportText();
-    app.backup = { exported: text, copied: false };
+    var keepClearing = !!(app.backup && app.backup.clearing);
+    app.backup = { exported: text, copied: false, clearing: keepClearing };
     copyText(text).then(function (ok) {
       if (!app.backup || app.backup.exported !== text) return;
       app.backup.copied = ok;
@@ -2050,6 +2060,20 @@ var actions = {
   },
 
   backupCancel: function () { app.backup = null; },
+
+  clearAsk: function () { app.backup = { clearing: true }; },
+
+  clearConfirm: function () {
+    var name = app.sheet.name;
+    app.sheet = defaultSheet();
+    app.backup = null;
+    app.roll = null; app.hit = null; app.evolve = null; app.lastInjury = null; app.lastRes = null; app.lastRep = null;
+    app.view = "sheet";
+    app.tab = "skills";
+    save();
+    toast("Ficha" + (name ? " de " + name : "") + " apagada.");
+    window.scrollTo(0, 0);
+  },
 
   newPride: function () {
     app.sheet.prideLost = false;

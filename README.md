@@ -5,6 +5,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 ## O que tem
 
 - Atributos com dano (clique nos quadradinhos), Força de Vontade e condições. Cada condição ativa mostra o que causa, tem botão para aplicar o dano periódico (Hipotérmico já tira 1 de Força e de Astúcia ao começar) e avisa quando você tenta recuperar um atributo que ela bloqueia.
+- Reputação e Experiência ficam no topo da aba Histórico.
 - Reputação de 0 a 10, que acompanha a idade (Jovem 0, Adulto 1, Idoso 2) e tem botão para rolar se o personagem é reconhecido. Experiência com XP disponível e total ganho. O botão "Evoluir" abre um modo em que cada perícia e talento mostra o custo do livro (perícia: 5 × o novo nível; talento: 3 × a nova categoria; talento novo: 3), desconta o XP ao tocar, deixa desfazer e avisa no chat ao concluir.
 - Fim de sessão (aba Sessão, só para quem pode ser mestre): o Mestre escolhe quanto XP dar e para quem, marca +1 de Reputação para quem fez algo lendário, e as fichas abertas dos jogadores recebem na hora e liberam o Orgulho.
 - Aviso claro quando um atributo fica Acabado: o que acontece com o personagem e como ele volta. O chat da mesa também avisa.
@@ -28,7 +29,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Rolar sem dados 3D, se precisar.
 - Iniciativa com o baralho de 10 cartas (aba só para quem pode ser mestre): montar o combate com as fichas abertas na mesa, a fila do TaleSpire, os minis selecionados ou nomes escritos; grupos de PNJs iguais; cartas extras por surpresa ou Rápido como um Raio, com escolha da carta; rodadas, vez de cada um, marcação de ação rápida e lenta, troca de cartas e FINTAR. A ordem e a vez aparecem no chat e na ficha de cada jogador. O chat marca essas rolagens como "rolado na ficha".
 
-A ficha é salva por campanha, no próprio TaleSpire. Na aba Histórico, "Exportar ficha" copia a ficha inteira como texto e "Importar ficha" a traz de volta. Guarde uma cópia antes de atualizar o Symbiote, ou use para levar a ficha para outra campanha ou outro computador.
+A ficha é salva por campanha, no próprio TaleSpire. Na aba Histórico, "Exportar ficha" copia a ficha inteira como texto, "Importar ficha" a traz de volta e "Limpar ficha" recomeça do zero (pedindo confirmação). Guarde uma cópia antes de atualizar o Symbiote, ou use para levar a ficha para outra campanha ou outro computador.
 
 ## Instalar
 
