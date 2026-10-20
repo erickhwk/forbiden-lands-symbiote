@@ -2,6 +2,8 @@
 
 Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiote. Os dados são rolados de verdade na bandeja do jogo, e a ficha interpreta o resultado do jeito do Forbidden Lands: conta sucessos, marca os danos, deixa forçar a rolagem e posta tudo no chat da mesa.
 
+**[Guia ilustrado de uso](docs/GUIA.md)**: para jogadores e para o Mestre, tela por tela.
+
 ## O que tem
 
 - Atributos com dano (clique nos quadradinhos), Força de Vontade e condições. Cada condição ativa mostra o que causa, tem botão para aplicar o dano periódico (Hipotérmico já tira 1 de Força e de Astúcia ao começar) e avisa quando você tenta recuperar um atributo que ela bloqueia.
