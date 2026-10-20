@@ -572,3 +572,17 @@ textarea.field.mono { min-height: 0; font-family: ui-monospace, "Cascadia Mono",
 .damage-num .w { font-family: var(--display); font-size: 20px; font-weight: 600; }
 .card.armor { display: flex; flex-direction: column; gap: 10px; }
 .hit { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* ---------- Ferimentos graves ---------- */
+
+.seg.dtype { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 0; }
+.injury-ask { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.injury-ask .btn-add { justify-content: center; height: 42px; }
+.injury-new { display: flex; flex-direction: column; gap: 4px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.25); border: 1px solid var(--bane); }
+.card.injuries { display: flex; flex-direction: column; gap: 10px; border-color: #6B3A2E; }
+.injury { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border); }
+.injury:first-of-type { border-top: none; padding-top: 0; }
+.injury.lethal { padding: 10px; border-radius: 8px; border: 1.5px solid var(--bane); background: #2A1712; }
+.lethal-line { display: flex; gap: 6px; color: #FFD9D2; }
+.lethal-line svg { flex-shrink: 0; color: var(--bane); }
+.injury-heal { gap: 8px; }

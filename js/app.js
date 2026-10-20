@@ -15,6 +15,7 @@ var E = window.FLEngine;
 var C = window.FLCatalog;
 var W = window.FLEncumbrance;
 var R = window.FLResources;
+var J = window.FLInjuries;
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -74,6 +75,9 @@ function defaultSheet() {
     darkSecret: "",
     relationships: "",
     resources: R.empty(), // Dados de Recurso: { comida: 8, agua: 6, ... } (0 = não tem)
+    injuries: [],     // Ferimentos Graves em andamento
+    lastDtype: "corte", // tipo do último golpe recebido: corte | perfuracao | esmagamento
+    injuryRolled: { forca: false, astucia: false }, // já rolou o ferimento desta vez que ficou Acabado
     talents: ""       // anotações livres (o nome da chave ficou da primeira versão)
   };
   ATTRS.forEach(function (a) {
@@ -92,6 +96,15 @@ function migrate(saved) {
   if (AGES.some(function (a) { return a[0] === saved.age; })) base.age = saved.age;
   base.prideUsedSession = !!saved.prideUsedSession;
   base.reputation = clamp(saved.reputation | 0, 0, MAX_REP);
+  if (Array.isArray(saved.injuries)) {
+    base.injuries = saved.injuries.filter(function (x) { return x && x.name; }).map(function (x) {
+      return { id: String(x.id || uid()), table: String(x.table || ""), code: x.code | 0, name: String(x.name), effect: String(x.effect || ""),
+        lethal: !!x.lethal, instant: !!x.instant, limit: String(x.limit || ""), healMod: x.healMod | 0, saved: !!x.saved,
+        heal: x.heal == null ? null : Math.max(0, x.heal | 0), perm: !!x.perm, note: String(x.note || "") };
+    });
+  }
+  if (J.BY_DAMAGE[saved.lastDtype]) base.lastDtype = saved.lastDtype;
+  if (saved.injuryRolled) base.injuryRolled = { forca: !!saved.injuryRolled.forca, astucia: !!saved.injuryRolled.astucia };
   base.xpTotal = Math.max(0, saved.xpTotal | 0);
   base.xp = clamp(saved.xp | 0, 0, Math.max(base.xpTotal, saved.xp | 0));
   if (base.xp > base.xpTotal) base.xpTotal = base.xp;
@@ -124,7 +137,8 @@ function migrate(saved) {
       var out = { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base, info: String(g.info || "") };
       // Fichas antigas não marcavam itens sem bônus: usa o catálogo, ou bônus 0 sem histórico.
       var cat = C.gearByName && C.gearByName(out.name);
-      out.nb = g.nb != null ? !!g.nb : cat ? cat.bonus == null : (bonus === 0 && base === 0);
+      var isArmor = g.kind === "armor" || (cat && cat.kind === "armor");
+      out.nb = g.nb != null ? !!g.nb : isArmor ? g.kind !== "armor" : cat ? cat.bonus == null : (bonus === 0 && base === 0);
       if (out.nb) { out.bonus = 0; out.base = 0; }
       out.weight = W.WEIGHTS[g.weight] ? g.weight : guessWeight(out.name);
       if (!out.info && cat && cat.info) out.info = cat.info;
@@ -350,6 +364,7 @@ function renderSheet() {
     renderBrokenBanner(),
     renderAttrs(),
     renderArmor(),
+    renderInjuries(),
     renderWillpower(),
     renderRepXp(),
     renderConditions(),
@@ -393,13 +408,145 @@ function renderBrokenBanner() {
   return '<section class="banner" role="alert">' +
     '<div class="banner-title">' + ICON.warn + "<span>Fora de ação</span></div>" +
     broken.map(function (a) {
-      return '<div class="banner-item"><strong>' + a.name + " Acabada.</strong> " + esc(BROKEN_EFFECT[a.key]) + "</div>";
+      return '<div class="banner-item"><strong>' + a.name + " Acabada.</strong> " + esc(BROKEN_EFFECT[a.key]) + "</div>" +
+        injuryPrompt(a.key);
     }).join("") +
+    (app.lastInjury ? renderLastInjury() : "") +
     '<div class="banner-foot">Para voltar: outro personagem rola ' +
     unique(broken.map(function (a) { return BROKEN_RECOVERY[a.key]; })).join(" ou ") +
     " em você (ação lenta) e cada sucesso devolve 1 ponto. Sem ajuda, você volta com 1 ponto depois de D6 horas. Marque a recuperação clicando nos quadradinhos do atributo.</div>" +
   "</section>";
 }
+
+/* ---------- Ferimentos Graves ---------- */
+
+var DTYPES = [["corte", "Corte"], ["perfuracao", "Perfuração"], ["esmagamento", "Esmagamento"]];
+
+function dtypeToggle(current, action) {
+  return '<div class="seg dtype" role="group" aria-label="Tipo do golpe">' + DTYPES.map(function (d) {
+    return '<button data-action="' + action + '" data-dtype="' + d[0] + '" aria-pressed="' + (current === d[0]) + '">' + d[1] + "</button>";
+  }).join("") + "</div>";
+}
+
+function injuryPrompt(key) {
+  var s = app.sheet;
+  if (key !== "forca" && key !== "astucia") return "";
+  if (s.injuryRolled[key] || app.injuryPending) {
+    return app.injuryPending ? '<div class="notice" role="status">' + ICON.tray + "<span>Dados do ferimento na bandeja (dezena e unidade).</span></div>" : "";
+  }
+  if (key === "astucia") {
+    return '<div class="injury-ask"><button class="btn-add danger" data-action="injRoll" data-table="horror">' + ICON.die + "Rolar ferimento de horror (D66)</button>" +
+      '<button class="link-btn inline" data-action="injSkip" data-attr="astucia">Foi ao forçar: não rola</button></div>';
+  }
+  var table = J.BY_DAMAGE[s.lastDtype];
+  return '<div class="injury-ask"><span class="small">Tipo do último golpe:</span>' + dtypeToggle(s.lastDtype, "injDtype") +
+    '<button class="btn-add danger" data-action="injRoll" data-table="' + table + '">' + ICON.die + "Rolar ferimento grave · " + J.LABELS[table] + "</button>" +
+    '<div class="row" style="gap:14px;flex-wrap:wrap">' +
+      '<button class="link-btn inline" data-action="injAtypical">Dano atípico (fogo, frio…)</button>' +
+      '<button class="link-btn inline" data-action="injSkip" data-attr="forca">Foi ao forçar: não rola</button></div></div>';
+}
+
+function renderLastInjury() {
+  var x = app.lastInjury;
+  return '<div class="injury-new"><div class="row between"><strong>' + esc(x.name) + '</strong><span class="small muted">' + J.LABELS[x.table] + " · " + x.code + "</span></div>" +
+    '<div class="small">' + esc(x.effect) + "</div>" +
+    (x.note ? '<div class="small muted">' + esc(x.note) + "</div>" : "") +
+    (x.instant ? '<div class="small" style="color:#FF9C8C"><strong>O personagem morre.</strong></div>'
+      : x.stored ? '<div class="small muted">Anotado em Ferimentos, logo abaixo da armadura.</div>' : '<div class="small muted">Sem efeito duradouro.</div>') +
+    '<button class="link-btn inline" data-action="injDismiss">Ok</button></div>';
+}
+
+function rollInjury(table) {
+  if (!app.ts) { applyInjury(table, 1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)); return; }
+  app.injuryPending = true;
+  render();
+  TS.dice.putDiceInTray([{ name: "Dezena", roll: "1d6" }, { name: "Unidade", roll: "1d6" }], true).then(function (rollId) {
+    app.resRolls[rollId] = "__inj:" + table;
+  }).catch(function (err) {
+    console.error(err);
+    app.injuryPending = false;
+    toast(trayError(err));
+    render();
+  });
+}
+
+function applyInjury(table, tens, units) {
+  app.injuryPending = false;
+  var s = app.sheet;
+  var code = J.d66(tens, units);
+  var row = J.lookup(table, code);
+  if (!row) { render(); return; }
+  var note = "";
+  // Regra do elmo: certos resultados rolam o Valor de Armadura do elmo; um 6 troca por 11-12 concussivo.
+  var head = wornArmor().head;
+  if (J.helmetApplies(table, code) && head && head.bonus > 0) {
+    var v = [];
+    for (var i = 0; i < head.bonus; i++) v.push(1 + Math.floor(Math.random() * 6));
+    if (v.indexOf(6) !== -1) {
+      note = "O elmo salvou (" + v.join(" ") + "): era " + row.name + ". " + (head.name || "Elmo") + " ficou com Valor de Armadura 0.";
+      if (head.base == null) head.base = head.bonus;
+      head.bonus = 0;
+      row = J.lookup("concussivo", 11);
+      table = "concussivo"; code = 11;
+    } else {
+      note = "O elmo não ajudou (" + v.join(" ") + ").";
+    }
+  }
+  var heal = row.heal && row.heal !== "perm" ? J.rollDice(row.heal) : null;
+  var injury = {
+    id: uid(), table: table, code: code, name: row.name, effect: row.effect, lethal: row.lethal, instant: row.instant,
+    limit: row.lethal && row.limit ? J.rollLimit(row.limit) : "", healMod: row.healMod, saved: false,
+    heal: heal, perm: row.heal === "perm", note: note
+  };
+  var lasting = injury.instant || injury.lethal || injury.perm || (heal != null && row.effect !== "Nenhum.");
+  if (lasting && !injury.instant) s.injuries.push(injury);
+  s.injuryRolled[table === "horror" ? "astucia" : "forca"] = true;
+  app.lastInjury = injury;
+  injury.stored = lasting && !injury.instant;
+  save();
+  render();
+  chatInjury(injury);
+}
+
+function chatInjury(x) {
+  if (!app.ts) return;
+  var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
+  var text = "<b>" + who + "</b> · ferimento grave (" + J.LABELS[x.table] + (x.code ? " " + x.code : "") + "): <color=#E0604E><b>" + clean(x.name) + "</b></color>";
+  if (x.instant) text += " · <color=#E0604E><b>morte imediata</b></color>";
+  else if (x.lethal) text += " · <color=#E0604E><b>LETAL</b></color>, Cura em até " + x.limit + (x.healMod ? " (" + x.healMod + ")" : "");
+  if (x.effect && x.effect !== "Nenhum." && !x.instant) text += "\n<size=85%>" + clean(x.effect) + (x.perm ? " Permanente." : x.heal ? " Cura em " + x.heal + " dias." : "") + "</size>";
+  if (x.note) text += "\n<size=85%><color=#A89C88>" + clean(x.note) + "</color></size>";
+  TS.chat.send(text, "board").catch(function () {});
+}
+
+function renderInjuries() {
+  var list = app.sheet.injuries;
+  if (!list.length) return "";
+  return '<section class="card injuries" aria-label="Ferimentos graves"><h2 class="eyebrow">Ferimentos graves</h2>' + list.map(function (x) {
+    var danger = x.lethal && !x.saved;
+    var html = '<div class="injury' + (danger ? " lethal" : "") + '">' +
+      '<div class="row between"><strong>' + esc(x.name) + '</strong><span class="small muted">' + (J.LABELS[x.table] || "") + "</span></div>" +
+      '<div class="small">' + esc(x.effect) + "</div>";
+    if (danger) {
+      html += '<div class="small lethal-line">' + ICON.warn + "<span>Letal: alguém precisa ter sucesso em Cura em até <strong>" + esc(x.limit || "pouco tempo") + "</strong>" +
+        (x.healMod ? " (Cura com " + x.healMod + ")" : "") + ", ou o personagem morre. Cada pessoa tenta só uma vez.</span></div>" +
+        '<button class="btn-add" data-action="injSaved" data-id="' + esc(x.id) + '">Salvo pela Cura</button>';
+    }
+    html += '<div class="row between injury-heal">';
+    if (x.perm) html += '<span class="small muted">Permanente</span>';
+    else if (x.heal != null) {
+      html += '<span class="small">Cura em <strong>' + E.plural(x.heal, "dia", "dias") + "</strong></span>" +
+        '<span class="row" style="gap:6px">' +
+          '<button class="btn-step" data-action="injDay" data-id="' + esc(x.id) + '" aria-label="Passou um dia"' + (x.heal <= 0 ? " disabled" : "") + ">−1</button>" +
+          '<button class="link-btn inline" data-action="injCare" data-id="' + esc(x.id) + '" title="Sucesso em Cura durante a recuperação">Cuidados: metade</button>' +
+        "</span>";
+    } else html += "<span></span>";
+    html += '<button class="link-btn inline" data-action="injRemove" data-id="' + esc(x.id) + '">' + (x.perm ? "Remover" : "Curado") + "</button></div>";
+    return html + "</div>";
+  }).join("") + "</section>";
+}
+
+function injuryById(id) { return app.sheet.injuries.filter(function (x) { return x.id === id; })[0] || null; }
 
 function unique(list) { return list.filter(function (v, i) { return list.indexOf(v) === i; }); }
 
@@ -478,7 +625,8 @@ function renderHit(h, w) {
       '<button class="btn-step" data-action="hitDmg" data-delta="-1" aria-label="Menos dano"' + (h.dmg <= 1 ? " disabled" : "") + ">−</button>" +
       '<span class="stat-num" style="font-size:24px;min-width:28px">' + h.dmg + "</span>" +
       '<button class="btn-step" data-action="hitDmg" data-delta="1" aria-label="Mais dano">+</button></div></div>' +
-      '<p class="small muted" style="margin:0">Só para dano físico de ataque. A armadura não protege de outros tipos de dano nem do dano por forçar.</p>' +
+      '<div class="row between"><span>Tipo do golpe</span></div>' + dtypeToggle(app.sheet.lastDtype, "hitDtype") +
+      '<p class="small muted" style="margin:0">Só para dano físico de ataque. A armadura não protege de outros tipos de dano nem do dano por forçar. O tipo decide a tabela se a Força ficar Acabada.</p>' +
       '<div class="row" style="gap:8px">' +
         (w.value
           ? '<button class="btn-add" data-action="hitRoll">' + ICON.die + "Rolar armadura (" + E.plural(w.value, "dado", "dados") + ")</button>"
@@ -500,7 +648,7 @@ function renderHit(h, w) {
       '<div><span class="mark" style="background:' + (r.taken ? "var(--bane)" : "var(--info)") + '"></span>' +
         (r.taken ? r.taken + " de dano em Força (agora " + a.cur + "/" + a.max + ")" : "Nenhum dano passou") + "</div>" +
       (h.armorNote ? '<div><span class="mark" style="background:var(--bane)"></span>' + esc(h.armorNote) + "</div>" : "") +
-      (h.brokeStrength ? '<div><span class="mark" style="background:var(--bane)"></span><strong>Força Acabada: fora de ação</strong></div>' : "") +
+      (h.brokeStrength ? '<div><span class="mark" style="background:var(--bane)"></span><strong>Força Acabada: role o ferimento grave no aviso do topo</strong></div>' : "") +
     "</div>";
     if (h.chooseLoss) {
       html += '<p class="small" style="margin:0">A armadura perde ' + r.armorLoss + " (um ponto por 1 rolado). Qual peça sofre?</p>" +
@@ -544,6 +692,7 @@ function resolveHit(values) {
   var a = app.sheet.attrs.forca, wasUp = a.cur > 0;
   a.cur = Math.max(0, a.cur - r.taken);
   h.brokeStrength = wasUp && a.cur === 0;
+  if (h.brokeStrength) app.sheet.injuryRolled.forca = false;
   if (r.armorLoss) {
     if (w.body && w.head) h.chooseLoss = true;
     else applyArmorLoss((w.body || w.head).part);
@@ -798,6 +947,17 @@ function useResource(key) {
 function handleResourceRoll(ev) {
   var key = app.resRolls[ev.payload.rollId];
   delete app.resRolls[ev.payload.rollId];
+  if (key && key.indexOf("__inj:") === 0) {
+    if (ev.kind === "rollResults") {
+      var groups = (ev.payload.resultsGroups || []).map(readGroup);
+      var pair = matchGroups([{ name: "Dezena", count: 1 }, { name: "Unidade", count: 1 }], groups);
+      var t = pair[0].values[0], u = pair[1].values[0];
+      if (t && u) { applyInjury(key.slice(6), t, u); return; }
+    }
+    app.injuryPending = false;
+    render();
+    return;
+  }
   if (key === "__armor") {
     if (ev.kind === "rollResults" && app.hit) {
       var ga = (ev.payload.resultsGroups || []).map(readGroup)[0];
@@ -1402,6 +1562,8 @@ var actions = {
   setAttr: function (el) {
     var a = app.sheet.attrs[el.dataset.attr], v = +el.dataset.value;
     a.cur = a.cur === v ? v - 1 : v;
+    // Recuperou: da próxima vez que ficar Acabado, rola de novo.
+    if (a.cur > 0 && app.sheet.injuryRolled[el.dataset.attr] != null) app.sheet.injuryRolled[el.dataset.attr] = false;
     save();
   },
 
@@ -1490,6 +1652,33 @@ var actions = {
   resUse: function (el) { useResource(el.dataset.key); return false; },
 
   hitOpen: function () { app.hit = { dmg: 1, phase: "setup" }; },
+  hitDtype: function (el) { app.sheet.lastDtype = el.dataset.dtype; save(); },
+  injDtype: function (el) { app.sheet.lastDtype = el.dataset.dtype; save(); },
+  injRoll: function (el) { rollInjury(el.dataset.table); return false; },
+  injSkip: function (el) { app.sheet.injuryRolled[el.dataset.attr] = true; save(); },
+  injDismiss: function () { app.lastInjury = null; },
+  // Dano atípico (tabela "Outros"): inconsciente, letal em D6 dias, sem rolar D66.
+  injAtypical: function () {
+    var x = { id: uid(), table: "outros", code: 0, name: "Dano atípico", effect: "Inconsciente até morrer ou receber Cura.", lethal: true, instant: false,
+      limit: J.rollLimit("D6 dias"), healMod: 0, saved: false, heal: null, perm: false, note: "" };
+    app.sheet.injuries.push(x);
+    app.sheet.injuryRolled.forca = true;
+    x.stored = true;
+    app.lastInjury = x;
+    save();
+    chatInjury(x);
+  },
+  injSaved: function (el) { var x = injuryById(el.dataset.id); if (x) x.saved = true; save(); },
+  injDay: function (el) { var x = injuryById(el.dataset.id); if (x && x.heal > 0) x.heal--; save(); },
+  injCare: function (el) {
+    var x = injuryById(el.dataset.id);
+    if (x && x.heal > 0) { x.heal = J.halve(x.heal); toast("Cuidados com sucesso: faltam " + E.plural(x.heal, "dia", "dias") + "."); }
+    save();
+  },
+  injRemove: function (el) {
+    app.sheet.injuries = app.sheet.injuries.filter(function (x) { return x.id !== el.dataset.id; });
+    save();
+  },
   hitDmg: function (el) { app.hit.dmg = clamp(app.hit.dmg + (+el.dataset.delta), 1, 20); },
   hitRoll: function () { rollArmor(); return false; },
   hitApply: function () { resolveHit(null); return false; },
@@ -1924,6 +2113,8 @@ function finishPush(dice) {
   var wasUp = a.cur > 0;
   a.cur = Math.max(0, a.cur - r.result.attributeDamage);
   r.brokeAttr = wasUp && a.cur === 0;
+  // Ficar Acabado só por forçar não gera ferimento grave.
+  if (r.brokeAttr && app.sheet.injuryRolled[r.attrKey] === false) app.sheet.injuryRolled[r.attrKey] = true;
   app.sheet.willpower = clamp(app.sheet.willpower + r.result.willpowerGained, 0, MAX_WP);
   var gear = gearById(r.gearId);
   r.gearName = gear ? (gear.name || "Item") : null;
