@@ -78,3 +78,16 @@ test("rolagem local respeita os lados", () => {
   const dice = E.rollGroups([{ type: "artifact", sides: 12, count: 2 }], rng);
   assert.deepStrictEqual(dice.map((x) => x.value), [1, 12]);
 });
+
+test("dano do golpe: arma mais 1 por sucesso extra", () => {
+  assert.strictEqual(E.attackDamage(2, 1), 2);
+  assert.strictEqual(E.attackDamage(2, 3), 4);
+  assert.strictEqual(E.attackDamage(2, 0), 0);
+});
+
+test("armadura: cada 6 reduz 1; os 1 só desgastam se algum dano passar", () => {
+  assert.deepStrictEqual(E.armorRoll([6, 1, 3], 3), { blocked: 1, taken: 2, armorLoss: 1, sixes: 1, ones: 1 });
+  assert.deepStrictEqual(E.armorRoll([6, 6, 1], 2), { blocked: 2, taken: 0, armorLoss: 0, sixes: 2, ones: 1 });
+  assert.deepStrictEqual(E.armorRoll([6, 6, 6], 2).blocked, 2);
+  assert.deepStrictEqual(E.armorRoll([], 3), { blocked: 0, taken: 3, armorLoss: 0, sixes: 0, ones: 0 });
+});

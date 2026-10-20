@@ -20,6 +20,8 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Forçar: só os dados que não deram sucesso nem 1 em atributo/equipamento voltam para a bandeja. Depois de forçar, a ficha aplica o dano no atributo, soma a Força de Vontade e reduz o bônus do equipamento.
 - Orgulho: quando um teste de perícia falha, um botão rola o D12 extra do Orgulho (uma vez por sessão). Se mesmo assim falhar, a ficha marca o Orgulho como perdido.
 - Gastar Pontos de Força de Vontade direto pela ficha (1, 2 ou 3, indicando o talento ou a magia). O gasto aparece no chat da mesa.
+- Dano no ataque: em Luta e Pontaria, o resultado mostra o dano (Dano da Arma mais 1 por sucesso extra; desarmado é 1) e manda para o chat.
+- Armadura: a ficha soma a armadura e o elmo vestidos. "Fui atingido" rola a armadura na bandeja (cada 6 reduz 1 de dano), aplica o resto na Força e, se algum dano passou, desgasta a armadura pelos 1 rolados (você escolhe se a armadura ou o elmo).
 - Rolar sem dados 3D, se precisar.
 - Iniciativa com o baralho de 10 cartas (aba só para quem pode ser mestre): montar o combate com as fichas abertas na mesa, a fila do TaleSpire, os minis selecionados ou nomes escritos; grupos de PNJs iguais; cartas extras por surpresa ou Rápido como um Raio, com escolha da carta; rodadas, vez de cada um, marcação de ação rápida e lenta, troca de cartas e FINTAR. A ordem e a vez aparecem no chat e na ficha de cada jogador. O chat marca essas rolagens como "rolado na ficha".
 
@@ -77,6 +79,8 @@ npm test
 - Dados de artefato: 6–7 vale 1 sucesso, 8–9 vale 2, 10–11 vale 3 e 12 vale 4.
 - Dados negativos: cada 6 anula um sucesso.
 - Ao forçar, re-rola tudo que não mostra sucesso nem dano.
+- Golpe: Dano da Arma mais 1 por sucesso além do primeiro.
+- Armadura: um dado por ponto de Valor de Armadura (corpo + elmo), cada 6 reduz 1 de dano; não pode ser forçada. Se algum dano passar, cada 1 reduz o Valor de Armadura em 1.
 
 Os nomes de perícias, condições, ascendências, profissões, talentos e itens seguem o Manual do Jogador da edição brasileira. O catálogo fica em `js/catalog.js`, só com nomes e números.
 

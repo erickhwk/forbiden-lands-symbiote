@@ -563,3 +563,12 @@ details.late[open] summary { margin-bottom: 8px; }
 textarea.field.mono { min-height: 0; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; word-break: break-all; }
 .btn-add { display: inline-flex; align-items: center; gap: 6px; }
 .btn-add.danger { border-color: var(--bane); background: #4A1E16; }
+
+/* ---------- Dano e armadura ---------- */
+
+.damage { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--bane); background: #2A1712; }
+.damage-num { display: flex; align-items: baseline; gap: 8px; }
+.damage-num .n { font-family: var(--display); font-size: 36px; font-weight: 700; line-height: 1; color: #FF9C8C; }
+.damage-num .w { font-family: var(--display); font-size: 20px; font-weight: 600; }
+.card.armor { display: flex; flex-direction: column; gap: 10px; }
+.hit { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border); }

@@ -128,6 +128,17 @@ function migrate(saved) {
       if (out.nb) { out.bonus = 0; out.base = 0; }
       out.weight = W.WEIGHTS[g.weight] ? g.weight : guessWeight(out.name);
       if (!out.info && cat && cat.info) out.info = cat.info;
+      // Armas e armaduras do catálogo (fichas até a 0.3.0 não guardavam isso).
+      out.kind = g.kind || (cat && cat.kind) || "";
+      if (out.kind === "weapon") {
+        out.dmg = g.dmg != null ? clamp(g.dmg | 0, 0, 10) : cat ? cat.dmg : 1;
+        out.melee = g.melee != null ? !!g.melee : cat ? !!cat.melee : true;
+      }
+      if (out.kind === "armor") {
+        out.part = g.part || (cat && cat.part) || "corpo";
+        if (g.kind !== "armor" && cat) { out.nb = false; out.bonus = cat.armor; out.base = cat.armor; }
+        out.worn = g.worn != null ? !!g.worn : true;
+      }
       return out;
     });
   }
@@ -156,6 +167,7 @@ var app = {
   combat: null,       // combate do mestre (initiative.js)
   resRolls: {},       // rollId -> chave do consumível sendo usado na bandeja
   lastRes: null,      // último uso de consumível, para mostrar na aba
+  hit: null,          // painel "Fui atingido": { dmg, phase, values, result }
   view: "sheet",      // "sheet" | "roll"
   roll: null
 };
@@ -296,6 +308,7 @@ var ICON = {
   back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>',
   push: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path></svg>',
   check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
+  shield: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"></path></svg>',
   copy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"></path></svg>',
   star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"></path></svg>',
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
@@ -336,6 +349,7 @@ function renderSheet() {
     renderPlayerCombat(),
     renderBrokenBanner(),
     renderAttrs(),
+    renderArmor(),
     renderWillpower(),
     renderRepXp(),
     renderConditions(),
@@ -437,6 +451,131 @@ function renderWillpower() {
         return '<button class="btn-spend" data-action="spendWp" data-n="' + n + '" aria-label="Gastar ' + n + ' PFV"' + (wp < n ? " disabled" : "") + ">−" + n + "</button>";
       }).join("") +
     "</div></section>";
+}
+
+/* ---------- Armadura e dano recebido ---------- */
+
+function renderArmor() {
+  var w = wornArmor(), h = app.hit;
+  var parts = [];
+  if (w.body) parts.push(esc(w.body.name || "Armadura") + " " + w.body.bonus);
+  if (w.head) parts.push(esc(w.head.name || "Elmo") + " " + w.head.bonus);
+  var html = '<section class="card armor" aria-label="Armadura">' +
+    '<div class="row between">' +
+      '<div><p class="eyebrow">Armadura</p>' +
+        '<div class="row" style="gap:8px;align-items:baseline"><span class="stat-num">' + w.value + "</span>" +
+        '<span class="small muted">' + (parts.length ? parts.join(" + ") : "nenhuma vestida") + "</span></div></div>" +
+      (h ? "" : '<button class="btn-add" data-action="hitOpen">' + ICON.shield + "Fui atingido</button>") +
+    "</div>";
+  if (h) html += renderHit(h, w);
+  return html + "</section>";
+}
+
+function renderHit(h, w) {
+  var html = '<div class="hit">';
+  if (h.phase === "setup") {
+    html += '<div class="row between"><span>Dano do ataque</span><div class="stepper" style="gap:8px">' +
+      '<button class="btn-step" data-action="hitDmg" data-delta="-1" aria-label="Menos dano"' + (h.dmg <= 1 ? " disabled" : "") + ">−</button>" +
+      '<span class="stat-num" style="font-size:24px;min-width:28px">' + h.dmg + "</span>" +
+      '<button class="btn-step" data-action="hitDmg" data-delta="1" aria-label="Mais dano">+</button></div></div>' +
+      '<p class="small muted" style="margin:0">Só para dano físico de ataque. A armadura não protege de outros tipos de dano nem do dano por forçar.</p>' +
+      '<div class="row" style="gap:8px">' +
+        (w.value
+          ? '<button class="btn-add" data-action="hitRoll">' + ICON.die + "Rolar armadura (" + E.plural(w.value, "dado", "dados") + ")</button>"
+          : '<button class="btn-add" data-action="hitApply">Receber ' + h.dmg + " em Força</button>") +
+        '<button class="btn-ghost slim" data-action="hitClose">Cancelar</button></div>';
+  } else if (h.phase === "tray") {
+    html += '<div class="notice" role="status">' + ICON.tray + "<span>Dados de armadura na bandeja. Jogue no tabuleiro.</span></div>" +
+      '<button class="btn-ghost slim" data-action="hitClose">Cancelar</button>';
+  } else {
+    var r = h.result, a = app.sheet.attrs.forca;
+    if (h.values) {
+      html += '<div class="dice-row">' + h.values.map(function (v) {
+        var cls = "die die-gear" + (v === 6 ? " success" : v === 1 && r.armorLoss ? " bane" : " dim");
+        return '<span class="' + cls + '" role="img" aria-label="' + v + '">' + v + "</span>";
+      }).join("") + "</div>";
+    }
+    html += '<div class="consequences">' +
+      (h.values ? '<div><span class="mark" style="background:var(--success)"></span>A armadura bloqueou ' + r.blocked + " de " + h.dmg + "</div>" : "") +
+      '<div><span class="mark" style="background:' + (r.taken ? "var(--bane)" : "var(--info)") + '"></span>' +
+        (r.taken ? r.taken + " de dano em Força (agora " + a.cur + "/" + a.max + ")" : "Nenhum dano passou") + "</div>" +
+      (h.armorNote ? '<div><span class="mark" style="background:var(--bane)"></span>' + esc(h.armorNote) + "</div>" : "") +
+      (h.brokeStrength ? '<div><span class="mark" style="background:var(--bane)"></span><strong>Força Acabada: fora de ação</strong></div>' : "") +
+    "</div>";
+    if (h.chooseLoss) {
+      html += '<p class="small" style="margin:0">A armadura perde ' + r.armorLoss + " (um ponto por 1 rolado). Qual peça sofre?</p>" +
+        '<div class="row" style="gap:8px;flex-wrap:wrap">' +
+          '<button class="btn-add danger" data-action="hitLoss" data-part="corpo">' + esc(w.body.name || "Armadura") + "</button>" +
+          '<button class="btn-add danger" data-action="hitLoss" data-part="cabeca">' + esc(w.head.name || "Elmo") + "</button></div>";
+    } else {
+      html += '<button class="btn-ghost slim" data-action="hitClose">Fechar</button>';
+    }
+  }
+  return html + "</div>";
+}
+
+function rollArmor() {
+  var h = app.hit, n = wornArmor().value;
+  if (!app.ts) {
+    var v = [];
+    for (var i = 0; i < n; i++) v.push(1 + Math.floor(Math.random() * 6));
+    resolveHit(v);
+    return;
+  }
+  h.phase = "tray";
+  render();
+  TS.dice.putDiceInTray([{ name: "Armadura", roll: n + "d6" }], true).then(function (rollId) {
+    app.resRolls[rollId] = "__armor";
+  }).catch(function (err) {
+    console.error(err);
+    if (app.hit) app.hit.phase = "setup";
+    toast(trayError(err));
+    render();
+  });
+}
+
+/* values = faces da armadura (ou null sem armadura). Aplica o dano em Força. */
+function resolveHit(values) {
+  var h = app.hit;
+  if (!h) return;
+  var w = wornArmor();
+  var r = values ? E.armorRoll(values, h.dmg) : { blocked: 0, taken: h.dmg, armorLoss: 0 };
+  h.values = values; h.result = r; h.phase = "result";
+  var a = app.sheet.attrs.forca, wasUp = a.cur > 0;
+  a.cur = Math.max(0, a.cur - r.taken);
+  h.brokeStrength = wasUp && a.cur === 0;
+  if (r.armorLoss) {
+    if (w.body && w.head) h.chooseLoss = true;
+    else applyArmorLoss((w.body || w.head).part);
+  }
+  save();
+  render();
+  chatHit();
+}
+
+function applyArmorLoss(part) {
+  var h = app.hit, w = wornArmor();
+  var piece = part === "cabeca" ? w.head : w.body;
+  if (!piece) return;
+  var loss = Math.min(h.result.armorLoss, piece.bonus);
+  if (piece.base == null) piece.base = piece.bonus;
+  piece.bonus -= loss;
+  h.chooseLoss = false;
+  h.armorNote = (piece.name || "Armadura") + (piece.bonus === 0 ? " quebrou" : " perdeu " + loss + " de Valor de Armadura (agora " + piece.bonus + ")");
+  save();
+}
+
+function chatHit() {
+  if (!app.ts) return;
+  var h = app.hit, r = h.result, a = app.sheet.attrs.forca;
+  var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
+  var text = "<b>" + who + "</b> foi atingido (" + h.dmg + ")" +
+    (h.values ? " · armadura bloqueou " + r.blocked : "") + " · " +
+    (r.taken ? "<color=#E0604E><b>" + r.taken + " de dano em Força</b></color>" : "<color=#5FB3BD>nenhum dano</color>") +
+    (r.armorLoss ? " · armadura desgastou " + r.armorLoss : "");
+  if (h.brokeStrength) text += "\n<color=#E0604E><b>FORÇA ACABADA · fora de ação</b></color>";
+  if (h.values) text += "\n<size=85%><color=#A89C88>" + h.values.join(" ") + "</color></size>";
+  TS.chat.send(text, "board").catch(function () {});
 }
 
 function renderRepXp() {
@@ -547,11 +686,19 @@ function renderGear() {
   var rows = app.sheet.gear.map(function (g) {
     var broken = !g.nb && g.bonus === 0;
     var damaged = !g.nb && g.base != null && g.bonus < g.base;
-    var sub;
+    var sub, armor = g.kind === "armor";
+    var where = g.part === "cabeca" ? "Cabeça" : "Corpo";
     if (g.nb) sub = g.info ? esc(g.info) : "Sem Bônus de Equipamento";
+    else if (armor && broken) sub = '<span class="badge">Quebrada</span> não protege até ser consertada';
+    else if (armor && damaged) sub = "Danificada · Valor de Armadura " + g.bonus + " de " + g.base + " · " + where;
+    else if (armor) sub = "Valor de Armadura " + g.bonus + " · " + where;
     else if (broken) sub = '<span class="badge">Quebrado</span> não dá dados até ser reparado';
     else if (damaged) sub = "Danificado · bônus " + g.bonus + " de " + g.base + (g.info ? " · " + esc(g.info) : "");
     else sub = g.info ? esc(g.info) : "Bônus de Equipamento";
+    if (armor) {
+      sub += ' · <button class="link-btn inline" data-action="gearWear" data-id="' + esc(g.id) + '" aria-pressed="' + !!g.worn + '">' +
+        (g.worn ? "Vestida" : "Guardada (vestir)") + "</button>";
+    }
     if (damaged) sub += ' · <button class="link-btn inline" data-action="gearRepair" data-id="' + esc(g.id) + '">Reparar</button>';
     // Só itens fora do catálogo podem ganhar bônus (os do livro já vêm certos).
     if (g.nb && !(C.gearByName && C.gearByName(g.name))) {
@@ -651,6 +798,15 @@ function useResource(key) {
 function handleResourceRoll(ev) {
   var key = app.resRolls[ev.payload.rollId];
   delete app.resRolls[ev.payload.rollId];
+  if (key === "__armor") {
+    if (ev.kind === "rollResults" && app.hit) {
+      var ga = (ev.payload.resultsGroups || []).map(readGroup)[0];
+      if (ga) { resolveHit(ga.values); return; }
+    }
+    if (app.hit) app.hit.phase = "setup";
+    render();
+    return;
+  }
   if (key === "__rep") {
     if (ev.kind === "rollResults") {
       var g = (ev.payload.resultsGroups || []).map(readGroup)[0];
@@ -899,7 +1055,17 @@ function loadStatus() {
 }
 
 /* Itens com Bônus de Equipamento (os que podem entrar numa rolagem). */
-function bonusGear() { return app.sheet.gear.filter(function (g) { return !g.nb; }); }
+function bonusGear() { return app.sheet.gear.filter(function (g) { return !g.nb && g.kind !== "armor"; }); }
+
+/* Armadura vestida: soma o corpo e o elmo (uma peça de cada). */
+function wornArmor() {
+  var body = null, head = null;
+  app.sheet.gear.forEach(function (g) {
+    if (g.kind !== "armor" || !g.worn) return;
+    if (g.part === "cabeca") { if (!head) head = g; } else if (!body) body = g;
+  });
+  return { body: body, head: head, value: (body ? body.bonus : 0) + (head ? head.bonus : 0) };
+}
 
 function talentById(id) { return app.sheet.talentList.filter(function (t) { return t.id === id; })[0] || null; }
 
@@ -1119,6 +1285,33 @@ function trayPreview(pool) {
 
 /* ---------- Resultado ---------- */
 
+/*
+ * Dano do ataque para rolagens de Luta e Pontaria.
+ * Luta sem arma é desarmado (Dano 1). Pontaria sem arma não mostra dano.
+ */
+var ATTACK_SKILLS = { combate: true, pontaria: true };
+
+function attackInfo(r) {
+  if (!r.skillKey || !ATTACK_SKILLS[r.skillKey]) return null;
+  var g = gearById(r.gearId);
+  var weapon = g && g.kind === "weapon" ? g : null;
+  if (!weapon && r.skillKey !== "combate") return null;
+  var base = weapon ? weapon.dmg : 1;
+  var name = weapon ? (weapon.name || "Arma") : "Desarmado";
+  return { name: name, base: base, total: E.attackDamage(base, r.result.successes), extra: Math.max(0, r.result.successes - 1) };
+}
+
+function renderAttack(r) {
+  var a = attackInfo(r);
+  if (!a || !r.result.successes) return "";
+  return '<section class="damage" aria-label="Dano do ataque">' +
+    '<div class="damage-num"><span class="n">' + a.total + '</span><span class="w">de dano</span></div>' +
+    '<div class="small muted">' + esc(a.name) + " " + a.base +
+      (a.extra ? " + " + E.plural(a.extra, "sucesso extra", "sucessos extras") : "") +
+      ". Os sucessos extras também podem virar outros efeitos, se o Mestre permitir.</div>" +
+  "</section>";
+}
+
 function renderResult() {
   var r = app.roll, res = r.result;
   var waiting = r.phase === "pushTray" || r.phase === "prideTray";
@@ -1128,6 +1321,8 @@ function renderResult() {
     (r.posted ? '<span class="row small muted" style="gap:6px">' + ICON.check + "No chat da mesa</span>" : "") + "</div>" +
     '<div class="big"><span class="n' + (res.successes ? "" : " zero") + '">' + res.successes + '</span><span class="w">' +
     (res.successes === 1 ? "sucesso" : "sucessos") + "</span></div></header>";
+
+  html += renderAttack(r);
 
   var lines = [];
   if (r.pushed) {
@@ -1243,8 +1438,17 @@ var actions = {
       focusLast('[data-bind="gear.name"]');
     } else {
       var it = C.gear(value);
-      var nb = it.bonus == null;
-      app.sheet.gear.push({ id: uid(), name: it.name, bonus: nb ? 0 : it.bonus, base: nb ? 0 : it.bonus, nb: nb, weight: it.weight || "normal", info: it.info || "" });
+      var item = { id: uid(), name: it.name, weight: it.weight || "normal", info: it.info || "", kind: it.kind || "" };
+      if (it.kind === "armor") {
+        item.bonus = item.base = it.armor; item.nb = false; item.part = it.part;
+        // Veste se ainda não há outra peça vestida no mesmo lugar.
+        item.worn = !app.sheet.gear.some(function (g) { return g.kind === "armor" && g.worn && g.part === it.part; });
+      } else {
+        var nb = it.bonus == null;
+        item.bonus = item.base = nb ? 0 : it.bonus; item.nb = nb;
+        if (it.kind === "weapon") { item.dmg = it.dmg; item.melee = it.melee; }
+      }
+      app.sheet.gear.push(item);
     }
     save();
   },
@@ -1269,7 +1473,8 @@ var actions = {
     if (!g || g.bonus <= 0) return;
     if (g.base == null) g.base = g.bonus;
     g.bonus -= 1;
-    toast((g.name || "Item") + (g.bonus === 0 ? " quebrou." : " perdeu 1 de bônus (" + g.bonus + " de " + g.base + ")."));
+    var what = g.kind === "armor" ? "de Valor de Armadura" : "de bônus";
+    toast((g.name || "Item") + (g.bonus === 0 ? " quebrou." : " perdeu 1 " + what + " (" + g.bonus + " de " + g.base + ")."));
     save();
   },
 
@@ -1281,6 +1486,27 @@ var actions = {
   },
 
   resUse: function (el) { useResource(el.dataset.key); return false; },
+
+  hitOpen: function () { app.hit = { dmg: 1, phase: "setup" }; },
+  hitDmg: function (el) { app.hit.dmg = clamp(app.hit.dmg + (+el.dataset.delta), 1, 20); },
+  hitRoll: function () { rollArmor(); return false; },
+  hitApply: function () { resolveHit(null); return false; },
+  hitLoss: function (el) { applyArmorLoss(el.dataset.part); },
+  hitClose: function () {
+    if (app.hit && app.hit.phase === "tray") {
+      Object.keys(app.resRolls).forEach(function (id) { if (app.resRolls[id] === "__armor") delete app.resRolls[id]; });
+    }
+    app.hit = null;
+  },
+
+  gearWear: function (el) {
+    var g = gearById(el.dataset.id);
+    if (!g) return;
+    g.worn = !g.worn;
+    // Só uma peça vestida por lugar: vestir esta tira a outra.
+    if (g.worn) app.sheet.gear.forEach(function (o) { if (o !== g && o.kind === "armor" && o.part === g.part) o.worn = false; });
+    save();
+  },
 
   gearGiveBonus: function (el) {
     var g = gearById(el.dataset.id);
@@ -1718,6 +1944,8 @@ function chatText(r) {
   var label = rollTitle(r) + (r.pushed ? " (forçada)" : "") + (r.prideUsed ? " + Orgulho" : "");
   var color = res.successes ? "#E8B84A" : "#A89C88";
   var text = "<b>" + who + "</b> · " + label + ": <color=" + color + "><b>" + E.plural(res.successes, "sucesso", "sucessos") + "</b></color>";
+  var atk = attackInfo(r);
+  if (atk && res.successes) text += " · <b>" + atk.total + " de dano</b> <size=85%><color=#A89C88>(" + clean(atk.name) + ")</color></size>";
 
   if (r.pushed) {
     var parts = [];

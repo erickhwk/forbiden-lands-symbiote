@@ -179,6 +179,25 @@
     }).filter(function (g) { return g.dice.length > 0; });
   }
 
+  /* Dano de um golpe: Dano da Arma mais 1 por sucesso além do primeiro. Sem sucesso, sem dano. */
+  function attackDamage(weaponDamage, successes) {
+    if (successes < 1) return 0;
+    return Math.max(0, weaponDamage | 0) + successes - 1;
+  }
+
+  /*
+   * Rolagem de armadura (não pode ser forçada).
+   * values: faces dos dados de armadura; damage: dano recebido.
+   * Cada 6 reduz 1 de dano. Se algum dano passar, cada 1 desgasta a armadura em 1;
+   * se a armadura absorver tudo, os 1 não fazem nada.
+   */
+  function armorRoll(values, damage) {
+    var sixes = values.filter(function (v) { return v === 6; }).length;
+    var ones = values.filter(function (v) { return v === 1; }).length;
+    var taken = Math.max(0, (damage | 0) - sixes);
+    return { blocked: Math.min(sixes, damage | 0), taken: taken, armorLoss: taken > 0 ? ones : 0, sixes: sixes, ones: ones };
+  }
+
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
 
   var api = {
@@ -198,6 +217,8 @@
     isLocked: isLocked,
     cancelsSuccess: cancelsSuccess,
     byType: byType,
+    attackDamage: attackDamage,
+    armorRoll: armorRoll,
     plural: plural
   };
 
