@@ -610,3 +610,23 @@ textarea.field.mono { min-height: 0; font-family: ui-monospace, "Cascadia Mono",
 .checks { display: flex; flex-direction: column; gap: 8px; }
 .check.feat { padding-top: 8px; border-top: 1px solid var(--border); }
 .btn-ghost.danger-text { color: #FF9C8C; border-color: #6B3A2E; }
+
+/* ---------- Painel do Mestre: Grupo ---------- */
+
+.mode-sheet { display: flex; justify-content: flex-end; margin-top: -10px; }
+.dot-alert { width: 8px; height: 8px; border-radius: 50%; background: var(--bane); }
+.card.member { display: flex; flex-direction: column; gap: 10px; }
+.card.member.off { opacity: 0.6; }
+.member-name { font-family: var(--display); font-size: 18px; }
+.online { color: var(--info); }
+.member-attrs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.mattr { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 8px; background: var(--surface-2); }
+.mattr-num { font-family: var(--display); font-size: 20px; font-weight: 600; line-height: 1; }
+.mattr.hurt .mattr-num { color: var(--success); }
+.mattr.broken { background: #4A1E16; }
+.mattr.broken .mattr-num { color: #FF9C8C; }
+.chip-s { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--border-strong); font-size: 12px; color: var(--muted); }
+.chip-s.warn { border-color: #8A6A2E; color: var(--success); }
+.member-inj { display: flex; flex-direction: column; gap: 4px; }
+.member-res { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.warn-text { color: #FF9C8C; }

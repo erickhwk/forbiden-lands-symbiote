@@ -278,6 +278,7 @@ function save() {
     } else {
       try { window.localStorage.setItem(LOCAL_KEY, raw); } catch (e) { /* modo privado: segue sem salvar */ }
     }
+    if (typeof scheduleHello === "function") scheduleHello();
   }, 400);
 }
 
@@ -291,6 +292,8 @@ function start(withTaleSpire) {
   app.started = true;
   app.ts = !!withTaleSpire;
   loadSheet().then(detectRole).catch(function (err) { console.warn(err); }).then(function () {
+    // O Mestre começa no painel do grupo; a ficha fica a um clique.
+    if (app.canGM && app.ts && app.mode === "sheet") app.mode = "group";
     render();
     if (!app.ts) return;
     sayHello();
@@ -347,6 +350,7 @@ function render() {
     return;
   }
   var body = app.view === "roll" ? renderRoll()
+    : app.mode === "group" && app.canGM ? renderGroup()
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
     : renderSheet();

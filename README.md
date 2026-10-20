@@ -27,6 +27,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Armadura: a ficha soma a armadura e o elmo vestidos. "Fui atingido" rola a armadura na bandeja (cada 6 reduz 1 de dano), aplica o resto na Força e, se algum dano passou, desgasta a armadura pelos 1 rolados (você escolhe se a armadura ou o elmo).
 - Ferimentos Graves: quando a Força ou a Astúcia fica Acabada, a ficha rola o D66 na bandeja na tabela certa (laceração, perfuração ou trauma concussivo pelo tipo do golpe; horror para Astúcia), aplica a regra do elmo e anota o ferimento com efeito, prazo se for letal e dias de cura (com "Cuidados" para cortar pela metade). Ficar Acabado ao forçar não gera ferimento; dano atípico (fogo, frio) tem opção própria.
 - Rolar sem dados 3D, se precisar.
+- Painel do Mestre: quem tem permissão de Mestre abre direto no painel, com Grupo, Iniciativa e Sessão (a ficha de personagem fica a um clique). O Grupo mostra ao vivo, a partir das fichas abertas dos jogadores, atributos, quem está Acabado, ferimentos (com alerta para os letais), condições, Força de Vontade, armadura, sobrecarga, consumíveis, XP e Reputação; quem fecha o Symbiote aparece como sem sinal.
 - Iniciativa com o baralho de 10 cartas (aba só para quem pode ser mestre): montar o combate com as fichas abertas na mesa, a fila do TaleSpire, os minis selecionados ou nomes escritos; grupos de PNJs iguais; cartas extras por surpresa ou Rápido como um Raio, com escolha da carta; rodadas, vez de cada um, marcação de ação rápida e lenta, troca de cartas e FINTAR. A ordem e a vez aparecem no chat e na ficha de cada jogador. O chat marca essas rolagens como "rolado na ficha".
 
 A ficha é salva por campanha, no próprio TaleSpire. Na aba Histórico, "Exportar ficha" copia a ficha inteira como texto, "Importar ficha" a traz de volta e "Limpar ficha" recomeça do zero (pedindo confirmação). Guarde uma cópia antes de atualizar o Symbiote, ou use para levar a ficha para outra campanha ou outro computador.
@@ -69,7 +70,8 @@ npm test
 
 - `js/engine.js`: motor de regras puro, sem DOM nem API do TaleSpire. Dá para reaproveitar em outra interface.
 - `js/initiative.js`: baralho de iniciativa, também puro.
-- `js/combat.js`: tela de iniciativa do mestre e sincronização com as fichas dos jogadores.
+- `js/combat.js`: painel do Mestre (grupo, iniciativa, sessão) e sincronização com as fichas dos jogadores.
+- `js/summary.js`: resumo compacto da ficha que vai para o Mestre, também puro.
 - `js/encumbrance.js`: cálculo da carga, também puro.
 - `js/resources.js`: Dados de Recurso, também puro.
 - `js/injuries.js`: tabelas e regras de Ferimentos Graves, também puro.

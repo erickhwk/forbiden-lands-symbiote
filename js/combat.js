@@ -5,7 +5,8 @@
  * as funções de app.js (app, render, save, toast, esc, ICON, actions).
  *
  * Sincronização (TS.sync, mensagens de até 500 caracteres, em JSON):
- *   ficha -> mestre  { t: "hi", n: nome, x: cartas extras do talento }
+ *   ficha -> mestre  { t: "hi", x: cartas extras do talento, d: resumo (summary.js) }
+ *                    também enviado sempre que a ficha muda
  *   mestre -> todos  { t: "who" }              pede que as fichas se apresentem
  *   mestre -> todos  { t: "st", ... }          estado do combate (ordem, rodada, vez)
  *   mestre -> ficha  { t: "ch", id, o: [...] } escolha entre cartas extras
@@ -64,8 +65,18 @@ function fastExtra() {
 
 /* A ficha se apresenta ao mestre. */
 function sayHello() {
-  if (!app.sheet.name && !app.sheet.talentList.length) return;
-  syncSend({ t: "hi", n: (app.sheet.name || "Personagem").slice(0, 40), x: fastExtra() }, "gms");
+  if (!app.ts || !app.sheet.name) return;
+  var st = loadStatus();
+  var d = window.FLSummary.encode(app.sheet, { loadUsed: st.used, loadCap: st.capacity, armor: wornArmor().value });
+  syncSend({ t: "hi", x: fastExtra(), d: d }, "gms");
+}
+
+/* A ficha avisa o Mestre a cada mudança (agrupando mudanças seguidas). */
+var helloTimer = null;
+function scheduleHello() {
+  if (!app.ts) return;
+  clearTimeout(helloTimer);
+  helloTimer = setTimeout(sayHello, 800);
 }
 
 /* Chamado pelo TaleSpire (nome declarado no manifest.json). */
@@ -79,8 +90,10 @@ function handleSyncMessage(ev) {
 
   if (app.canGM) {
     if (msg.t === "hi") {
-      app.table.sheets[from.id] = { name: msg.n, extra: msg.x | 0, player: from.player ? from.player.name : "" };
-      linkSheet(from.id, msg);
+      var sum = msg.d ? window.FLSummary.decode(msg.d) : null;
+      var name = sum ? sum.name : msg.n;
+      app.table.sheets[from.id] = { name: name, extra: msg.x | 0, player: from.player ? from.player.name : "", sum: sum, at: Date.now(), online: true };
+      linkSheet(from.id, { n: name });
       render();
       return;
     }
@@ -114,7 +127,9 @@ function handleSyncClientEvent(ev) {
     else sayHello();
   }
   if (ev.kind === "clientDisconnected" && app.canGM && ev.payload) {
-    delete app.table.sheets[ev.payload.clientId];
+    // Mantém o último resumo, marcado como sem sinal.
+    var sh = app.table.sheets[ev.payload.clientId];
+    if (sh) sh.online = false;
     render();
   }
 }
@@ -187,12 +202,98 @@ function afterCombatChange(opts) {
 
 function renderModeBar() {
   if (!app.canGM) return "";
-  return '<nav class="modes" aria-label="Modo">' +
-    '<button data-action="mode" data-mode="sheet" aria-pressed="' + (app.mode !== "combat" && app.mode !== "session") + '">Ficha</button>' +
+  var alert = groupAlerts().length;
+  return '<nav class="modes" aria-label="Painel do Mestre">' +
+    '<button data-action="mode" data-mode="group" aria-pressed="' + (app.mode === "group") + '">Grupo' +
+      (alert ? ' <span class="dot-alert" aria-label="' + alert + ' alerta(s)"></span>' : "") + "</button>" +
     '<button data-action="mode" data-mode="combat" aria-pressed="' + (app.mode === "combat") + '">Iniciativa' +
       (app.combat && app.combat.phase === "running" ? ' <span class="dot-live"></span>' : "") + "</button>" +
     '<button data-action="mode" data-mode="session" aria-pressed="' + (app.mode === "session") + '">Sessão</button>' +
-  "</nav>";
+  "</nav>" +
+  '<div class="mode-sheet"><button class="link-btn inline" data-action="mode" data-mode="' + (app.mode === "sheet" ? "group" : "sheet") + '">' +
+    (app.mode === "sheet" ? "← Voltar ao painel do Mestre" : "Abrir minha ficha de personagem") + "</button></div>";
+}
+
+/* ---------- Grupo: o estado de cada personagem ---------- */
+
+var ATTR_SHORT = [["forca", "For"], ["agilidade", "Agi"], ["astucia", "Ast"], ["empatia", "Emp"]];
+var COND_LABEL = { faminto: "Faminto", sedento: "Desidratado", exausto: "Insone", congelando: "Hipotérmico" };
+var RES_LABEL = [["comida", "Comida"], ["agua", "Água"], ["flechas", "Flechas"], ["tochas", "Tochas"]];
+
+/* Alertas que pedem atenção do Mestre agora. */
+function groupAlerts() {
+  var out = [];
+  Object.keys(app.table.sheets).forEach(function (id) {
+    var sh = app.table.sheets[id], s = sh.sum;
+    if (!s) return;
+    s.injuries.forEach(function (x) { if (x.lethal) out.push({ id: id, text: sh.name + ": " + x.name + " (letal" + (x.limit ? ", Cura em até " + x.limit : "") + ")", level: 2 }); });
+    ATTR_SHORT.forEach(function (a) {
+      if (s.attrs[a[0]].max && s.attrs[a[0]].cur === 0) out.push({ id: id, text: sh.name + ": " + attrByKey(a[0]).name + " Acabada", level: 1 });
+    });
+  });
+  return out.sort(function (a, b) { return b.level - a.level; });
+}
+
+function renderGroup() {
+  var ids = Object.keys(app.table.sheets);
+  var html = '<header class="row between"><div><p class="eyebrow">Painel do Mestre</p><h1 class="title">Grupo</h1></div>' +
+    '<button class="btn-ghost slim" data-action="grantRefresh">Atualizar</button></header>';
+  if (!app.ts) {
+    return html + '<div class="notice">' + ICON.warn + "<span>Fora do TaleSpire não há fichas de jogadores para acompanhar.</span></div>";
+  }
+  var alerts = groupAlerts();
+  if (alerts.length) {
+    html += '<section class="banner" role="alert"><div class="banner-title">' + ICON.warn + "<span>Atenção</span></div>" +
+      alerts.map(function (a) { return '<div class="banner-item">' + esc(a.text) + "</div>"; }).join("") + "</section>";
+  }
+  if (!ids.length) {
+    return html + '<p class="muted" style="margin:0">Nenhuma ficha de jogador apareceu ainda. As fichas aparecem aqui quando os jogadores abrem o Symbiote no mesmo tabuleiro e preenchem o nome.</p>';
+  }
+  html += ids.map(function (id) { return renderMember(id, app.table.sheets[id]); }).join("");
+  return html;
+}
+
+function renderMember(id, sh) {
+  var s = sh.sum;
+  var off = sh.online === false;
+  var html = '<section class="card member' + (off ? " off" : "") + '" aria-label="' + esc(sh.name) + '">' +
+    '<div class="row between"><div><strong class="member-name">' + esc(sh.name) + "</strong>" +
+      (sh.player ? ' <span class="small muted">' + esc(sh.player) + "</span>" : "") + "</div>" +
+      '<span class="small ' + (off ? "muted" : "online") + '">' + (off ? "sem sinal · " + ago(sh.at) : "ao vivo") + "</span></div>";
+  if (!s) return html + '<div class="small muted">Esta ficha ainda é de uma versão antiga e não manda resumo.</div></section>';
+
+  html += '<div class="member-attrs">' + ATTR_SHORT.map(function (a) {
+    var v = s.attrs[a[0]], broken = v.max && v.cur === 0, hurt = v.cur < v.max;
+    return '<div class="mattr' + (broken ? " broken" : hurt ? " hurt" : "") + '"><span class="small muted">' + a[1] + "</span>" +
+      '<span class="mattr-num">' + v.cur + '<span class="stat-of">/' + v.max + "</span></span></div>";
+  }).join("") + "</div>";
+
+  var chips = [];
+  if (s.willpower) chips.push('<span class="chip-s">PFV ' + s.willpower + "</span>");
+  if (s.armor) chips.push('<span class="chip-s">Armadura ' + s.armor + "</span>");
+  s.conditions.forEach(function (c) { chips.push('<span class="chip-s warn">' + COND_LABEL[c] + "</span>"); });
+  if (s.loadCap && s.loadUsed > s.loadCap) chips.push('<span class="chip-s warn">Sobrecarregado ' + W.fmt(s.loadUsed) + "/" + s.loadCap + "</span>");
+  if (chips.length) html += '<div class="chips">' + chips.join("") + "</div>";
+
+  if (s.injuries.length) {
+    html += '<div class="member-inj">' + s.injuries.map(function (x) {
+      var heal = x.heal === -1 ? "permanente" : x.heal === -2 ? "" : x.heal === 0 ? "curando" : x.heal + (x.heal === 1 ? " dia" : " dias");
+      return '<div class="' + (x.lethal ? "lethal-line" : "small") + '">' + (x.lethal ? ICON.warn : "") + "<span>" + esc(x.name) +
+        (x.lethal ? " · <strong>letal" + (x.limit ? ", até " + esc(x.limit) : "") + "</strong>" : heal ? ' <span class="muted">· ' + heal + "</span>" : "") + "</span></div>";
+    }).join("") + "</div>";
+  }
+
+  html += '<div class="member-res small">' + RES_LABEL.map(function (r) {
+    var d = s.resources[r[0]];
+    return '<span class="' + (d === 0 && (r[0] === "comida" || r[0] === "agua") ? "warn-text" : d ? "" : "muted") + '">' + r[1] + " " + (d ? "D" + d : "—") + "</span>";
+  }).join("") + '<span class="muted">XP ' + s.xp + "/" + s.xpTotal + " · Rep " + s.reputation + "</span></div>";
+  return html + "</section>";
+}
+
+function ago(t) {
+  if (!t) return "";
+  var m = Math.round((Date.now() - t) / 60000);
+  return m < 1 ? "agora" : m < 60 ? "há " + m + " min" : "há " + Math.round(m / 60) + " h";
 }
 
 function renderCombat() {
@@ -239,7 +340,7 @@ function renderSetup(c) {
 function renderAdders(c) {
   var added = {};
   c.entries.forEach(function (e) { if (e.clientId) added[e.clientId] = true; });
-  var sheets = Object.keys(app.table.sheets).filter(function (id) { return !added[id]; });
+  var sheets = Object.keys(app.table.sheets).filter(function (id) { return !added[id] && app.table.sheets[id].online !== false; });
 
   var html = '<section class="stack" aria-label="Adicionar combatentes"><h2 class="eyebrow">Adicionar</h2>';
   if (app.ts) {
@@ -347,7 +448,7 @@ function renderSwap(c) {
 function renderSession() {
   if (!app.grant) app.grant = { xp: 5, rep: {}, skip: {}, sent: {}, ok: {} };
   var g = app.grant;
-  var ids = Object.keys(app.table.sheets);
+  var ids = Object.keys(app.table.sheets).filter(function (id) { return app.table.sheets[id].online !== false; });
   var html = '<header><p class="eyebrow">Fim de sessão</p><h1 class="title">Conceder XP</h1></header>' +
     '<p class="small muted" style="margin:0">O XP vai para as fichas abertas na mesa agora. Cada ficha soma o XP, ganha a Reputação marcada e libera o Orgulho para a próxima sessão.</p>' +
     '<section class="card stat"><div class="row between"><span class="eyebrow">XP para cada um</span>' +
@@ -435,7 +536,7 @@ Object.assign(actions, {
   grantSend: function () {
     var g = app.grant, names = [], reps = [];
     Object.keys(app.table.sheets).forEach(function (id) {
-      if (g.skip[id] || g.sent[id]) return;
+      if (g.skip[id] || g.sent[id] || app.table.sheets[id].online === false) return;
       syncSend({ t: "xp", n: g.xp, r: g.rep[id] ? 1 : 0 }, id);
       g.sent[id] = true;
       names.push(app.table.sheets[id].name);
