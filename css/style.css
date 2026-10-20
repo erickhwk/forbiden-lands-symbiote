@@ -557,3 +557,9 @@ details.late[open] summary { margin-bottom: 8px; }
 .xp-spend .field { width: 0; flex: 1 1 auto; min-width: 0; height: 36px; padding: 0 8px; }
 .xp-spend .btn-add { height: 36px; padding: 0 10px; font-size: 14px; }
 .res-note.good { color: var(--success); font-weight: 600; }
+
+/* ---------- Cópia de segurança ---------- */
+
+textarea.field.mono { min-height: 0; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; word-break: break-all; }
+.btn-add { display: inline-flex; align-items: center; gap: 6px; }
+.btn-add.danger { border-color: var(--bane); background: #4A1E16; }

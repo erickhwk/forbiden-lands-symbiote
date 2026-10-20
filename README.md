@@ -23,7 +23,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Rolar sem dados 3D, se precisar.
 - Iniciativa com o baralho de 10 cartas (aba só para quem pode ser mestre): montar o combate com as fichas abertas na mesa, a fila do TaleSpire, os minis selecionados ou nomes escritos; grupos de PNJs iguais; cartas extras por surpresa ou Rápido como um Raio, com escolha da carta; rodadas, vez de cada um, marcação de ação rápida e lenta, troca de cartas e FINTAR. A ordem e a vez aparecem no chat e na ficha de cada jogador. O chat marca essas rolagens como "rolado na ficha".
 
-A ficha é salva por campanha, no próprio TaleSpire.
+A ficha é salva por campanha, no próprio TaleSpire. Na aba Histórico, "Exportar ficha" copia a ficha inteira como texto e "Importar ficha" a traz de volta. Guarde uma cópia antes de atualizar o Symbiote, ou use para levar a ficha para outra campanha ou outro computador.
 
 ## Instalar
 

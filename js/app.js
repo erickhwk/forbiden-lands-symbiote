@@ -296,6 +296,7 @@ var ICON = {
   back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>',
   push: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path></svg>',
   check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
+  copy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"></path></svg>',
   star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"></path></svg>',
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
@@ -775,6 +776,67 @@ function prideStatus() {
   return '<div class="notice">' + ICON.star + "<span>Disponível nesta sessão. Use pela tela de resultado quando um teste de perícia falhar.</span></div>";
 }
 
+/* ---------- Cópia de segurança ---------- */
+
+var BACKUP_KEY = "ficha-forbidden-lands";
+
+function exportText() {
+  return JSON.stringify({ "ficha-forbidden-lands": 1, exportedAt: new Date().toISOString(), sheet: app.sheet });
+}
+
+/* Aceita o texto exportado, o arquivo salvo pelo Symbiote ou uma ficha crua. */
+function parseImport(text) {
+  var data;
+  try { data = JSON.parse(String(text || "").trim()); } catch (e) { return null; }
+  if (!data || typeof data !== "object") return null;
+  var sheet = data.sheet && typeof data.sheet === "object" ? data.sheet : data;
+  if (!sheet.attrs && !sheet.skills && !sheet.name) return null;
+  return migrate(sheet);
+}
+
+function renderBackup() {
+  var b = app.backup || {};
+  var html = '<h2 class="section-title">Cópia de segurança</h2>' +
+    '<p class="small muted" style="margin:0">Guarde uma cópia da ficha antes de atualizar o Symbiote, ou para levá-la a outra campanha ou outro computador. A cópia é um texto: cole num bloco de notas ou numa mensagem para você mesmo.</p>' +
+    '<div class="row" style="gap:8px;flex-wrap:wrap">' +
+      '<button class="btn-add" data-action="backupExport">' + ICON.copy + "Exportar ficha</button>" +
+      '<button class="btn-ghost slim" data-action="backupOpenImport">Importar ficha</button>' +
+    "</div>";
+
+  if (b.exported) {
+    html += '<div class="bg-field"><label class="eyebrow" for="f-export">Ficha exportada</label>' +
+      '<p class="small muted" style="margin:2px 0 6px">' + (b.copied ? "Já está na área de transferência. Se não colar, selecione o texto abaixo e copie." : "Selecione o texto abaixo e copie.") + "</p>" +
+      '<textarea id="f-export" class="field mono" rows="4" readonly>' + esc(b.exported) + "</textarea></div>";
+  }
+
+  if (b.importing) {
+    html += '<div class="bg-field"><label class="eyebrow" for="f-import">Colar ficha</label>' +
+      '<textarea id="f-import" class="field mono" rows="4" placeholder="Cole aqui o texto exportado">' + esc(b.text || "") + "</textarea></div>";
+    if (b.error) html += '<div class="notice error">' + ICON.warn + "<span>" + esc(b.error) + "</span></div>";
+    if (b.preview) {
+      html += '<div class="banner"><div class="banner-title">' + ICON.warn + "<span>Substituir a ficha atual?</span></div>" +
+        '<div class="banner-item">A ficha <strong>' + esc(app.sheet.name || "sem nome") + "</strong> desta campanha será trocada por <strong>" +
+        esc(b.preview.name || "sem nome") + "</strong>. Exporte a atual antes, se quiser guardá-la.</div>" +
+        '<div class="row" style="gap:8px"><button class="btn-add danger" data-action="backupConfirm">Substituir</button>' +
+        '<button class="btn-ghost slim" data-action="backupCancel">Cancelar</button></div></div>';
+    } else {
+      html += '<div class="row" style="gap:8px"><button class="btn-add" data-action="backupCheck">Importar</button>' +
+        '<button class="btn-ghost slim" data-action="backupCancel">Cancelar</button></div>';
+    }
+  }
+  return html;
+}
+
+function copyText(text) {
+  if (app.ts && TS.system && TS.system.clipboard) {
+    return TS.system.clipboard.setText(text).then(function () { return true; }, function () { return false; });
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; });
+  }
+  return Promise.resolve(false);
+}
+
 function renderBackground() {
   var s = app.sheet;
   function text(key, label, hint, rows) {
@@ -798,6 +860,7 @@ function renderBackground() {
     text("darkSecret", "Segredo Sombrio", "", 2) +
     text("relationships", "Relacionamentos", "Uma linha por personagem da mesa.", 4) +
     text("talents", "Anotações", "", 6) +
+    renderBackup() +
   "</section>";
 }
 
@@ -1339,6 +1402,46 @@ var actions = {
     save();
     toast("Nova sessão: o Orgulho está disponível de novo.");
   },
+
+  backupExport: function () {
+    var text = exportText();
+    app.backup = { exported: text, copied: false };
+    copyText(text).then(function (ok) {
+      if (!app.backup || app.backup.exported !== text) return;
+      app.backup.copied = ok;
+      render();
+      if (ok) toast("Ficha copiada para a área de transferência.");
+      var area = document.getElementById("f-export");
+      if (area && !ok) area.select();
+    });
+  },
+
+  backupOpenImport: function () {
+    app.backup = { importing: true };
+    focusLast("#f-import");
+  },
+
+  backupCheck: function () {
+    var area = document.getElementById("f-import");
+    var text = area ? area.value : "";
+    var sheet = parseImport(text);
+    app.backup = { importing: true, text: text };
+    if (!text.trim()) app.backup.error = "Cole o texto da ficha exportada.";
+    else if (!sheet) app.backup.error = "Esse texto não parece uma ficha exportada. Copie o texto inteiro, do primeiro { ao último }.";
+    else app.backup.preview = sheet;
+  },
+
+  backupConfirm: function () {
+    var sheet = app.backup && app.backup.preview;
+    if (!sheet) return;
+    app.sheet = sheet;
+    app.backup = null;
+    save();
+    toast("Ficha importada: " + (sheet.name || "sem nome") + ".");
+    window.scrollTo(0, 0);
+  },
+
+  backupCancel: function () { app.backup = null; },
 
   newPride: function () {
     app.sheet.prideLost = false;
