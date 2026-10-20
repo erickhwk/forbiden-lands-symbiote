@@ -68,7 +68,6 @@ function defaultSheet() {
     clothes: "",
     reputation: 0,    // 0 a 10 (o livro não tem teto; a ficha para em 10)
     coins: { cobre: 0, prata: 0, ouro: 0 },
-    xpMode: false,    // gastar XP ao evoluir perícias e talentos
     xp: 0,            // XP disponível para gastar
     xpTotal: 0,       // XP ganho na vida do personagem
     pride: "",
@@ -99,7 +98,6 @@ function migrate(saved) {
   base.prideUsedSession = !!saved.prideUsedSession;
   base.reputation = clamp(saved.reputation | 0, 0, MAX_REP);
   if (saved.coins) ["cobre", "prata", "ouro"].forEach(function (k) { base.coins[k] = Math.max(0, saved.coins[k] | 0); });
-  base.xpMode = !!saved.xpMode;
   if (Array.isArray(saved.injuries)) {
     base.injuries = saved.injuries.filter(function (x) { return x && x.name; }).map(function (x) {
       return { id: String(x.id || uid()), table: String(x.table || ""), code: x.code | 0, name: String(x.name), effect: String(x.effect || ""),
@@ -373,6 +371,7 @@ function renderSheet() {
     renderWillpower(),
     renderRepXp(),
     renderConditions(),
+    renderEvolveBar(),
     renderTabs(),
     app.tab === "skills" ? renderSkills()
       : app.tab === "gear" ? renderGear()
@@ -734,34 +733,79 @@ function chatHit() {
 
 function renderRepXp() {
   var s = app.sheet;
-  return '<section class="repxp" aria-label="Reputação e experiência">' +
-    '<div class="card stat">' +
-      '<div class="row between"><h2 class="eyebrow">Reputação</h2>' +
-        '<button class="btn-icon sm" data-action="repRoll" aria-label="Rolar Reputação" title="Ser reconhecido: role ' + s.reputation + 'd6, um 6 basta"' + (s.reputation ? "" : " disabled") + ">" + ICON.die + "</button></div>" +
+  return '<section class="card repxp" aria-label="Reputação e experiência">' +
+    '<div class="stat-row">' +
+      '<span class="eyebrow">Reputação</span>' +
       '<div class="stepper">' +
         '<button class="btn-step" data-action="rep" data-delta="-1" aria-label="Diminuir Reputação"' + (s.reputation <= 0 ? " disabled" : "") + ">−</button>" +
         '<span class="stat-num">' + s.reputation + "</span>" +
         '<button class="btn-step" data-action="rep" data-delta="1" aria-label="Aumentar Reputação"' + (s.reputation >= MAX_REP ? " disabled" : "") + ">+</button>" +
       "</div>" +
-      (app.lastRep ? '<div class="res-note' + (app.lastRep.known ? " good" : "") + '">' + esc(repText(app.lastRep)) + "</div>"
-        : app.repPending ? '<div class="res-note">' + ICON.tray + "<span>Na bandeja.</span></div>" : "") +
+      '<button class="btn-icon sm" data-action="repRoll" aria-label="Rolar Reputação" title="Ser reconhecido: role ' + s.reputation + 'd6, um 6 basta"' + (s.reputation ? "" : " disabled") + ">" + ICON.die + "</button>" +
     "</div>" +
-    '<div class="card stat">' +
-      '<div class="row between" style="min-height:36px"><h2 class="eyebrow">Experiência</h2></div>' +
+    (app.lastRep ? '<div class="res-note' + (app.lastRep.known ? " good" : "") + '">' + esc(repText(app.lastRep)) + "</div>"
+      : app.repPending ? '<div class="res-note">' + ICON.tray + "<span>Na bandeja.</span></div>" : "") +
+    '<div class="stat-row">' +
+      '<span class="eyebrow">Experiência</span>' +
       '<div class="stepper">' +
-        '<button class="btn-step" data-action="xp" data-delta="-1" aria-label="Gastar 1 XP"' + (s.xp <= 0 ? " disabled" : "") + ">−</button>" +
-        '<span class="stat-num">' + s.xp + '<span class="stat-of"> / ' + s.xpTotal + "</span></span>" +
+        '<button class="btn-step" data-action="xp" data-delta="-1" aria-label="Tirar 1 XP"' + (s.xp <= 0 ? " disabled" : "") + ">−</button>" +
+        '<span class="stat-num" title="disponível / total ganho">' + s.xp + '<span class="stat-of">/' + s.xpTotal + "</span></span>" +
         '<button class="btn-step" data-action="xp" data-delta="1" aria-label="Ganhar 1 XP">+</button>' +
       "</div>" +
-      '<div class="small muted">disponível / total ganho</div>' +
-      '<div class="xp-spend"><label for="f-xp-spend" class="sr-only">XP a gastar</label>' +
-        '<input id="f-xp-spend" class="field" type="number" min="1" inputmode="numeric" placeholder="XP">' +
-        '<button class="btn-add" data-action="xpSpend"' + (s.xp ? "" : " disabled") + ">Gastar</button></div>" +
-      '<label class="check"><input type="checkbox" data-xpmode' + (s.xpMode ? " checked" : "") + "> Gastar XP ao evoluir</label>" +
+      (app.evolve ? '<span class="small muted">evoluindo</span>'
+        : '<button class="btn-add slim" data-action="evolveStart"' + (s.xp ? "" : ' disabled title="Sem XP para gastar"') + ">Evoluir</button>") +
     "</div>" +
+    '<div class="small muted">XP disponível / total ganho</div>' +
   "</section>";
 }
 
+/* ---------- Evoluir com XP ---------- */
+
+/*
+ * Modo explícito: enquanto ativo, perícias e talentos mostram o custo no
+ * botão e cada compra desconta XP. Dá para desfazer as compras do modo.
+ *   Perícia: 5 × o novo nível. Talento: 3 × a nova categoria. Talento novo: 3.
+ */
+function skillCost(level) { return 5 * (level + 1); }
+function talentCost(rank) { return 3 * (rank + 1); }
+
+function spendEvolve(cost, entry, what) {
+  var s = app.sheet;
+  if (s.xp < cost) { toast(what + " custa " + cost + " XP; você tem " + s.xp + "."); render(); return false; }
+  s.xp -= cost;
+  entry.cost = cost;
+  entry.what = what;
+  app.evolve.log.push(entry);
+  return true;
+}
+
+function renderEvolveBar() {
+  if (!app.evolve) return "";
+  var log = app.evolve.log, spent = log.reduce(function (n, e) { return n + e.cost; }, 0);
+  return '<section class="evolve-bar" aria-label="Evoluindo com XP">' +
+    '<div class="row between"><strong>Evoluindo com XP</strong><span><strong class="init-inline">' + app.sheet.xp + "</strong> XP</span></div>" +
+    '<div class="small muted">Perícia: 5 × o novo nível · Talento: 3 × a nova categoria · Talento novo: 3. ' +
+      "Toque no custo ao lado de cada perícia ou talento. Pelo livro, gasta-se XP descansando ou dormindo.</div>" +
+    (log.length ? '<div class="small">' + log.map(function (e) { return esc(e.what) + " (" + e.cost + ")"; }).join(" · ") + "</div>" : "") +
+    '<div class="row" style="gap:8px">' +
+      '<button class="btn-add" data-action="evolveDone">Concluir' + (spent ? " · " + spent + " XP" : "") + "</button>" +
+      (log.length ? '<button class="btn-ghost slim" data-action="evolveUndo">Desfazer a última</button>' : "") +
+    "</div></section>";
+}
+
+function evolveSkillButton(k, lvl) {
+  if (lvl >= MAX_SKILL) return '<span class="evo-cost max">máx.</span>';
+  var cost = skillCost(lvl), can = app.sheet.xp >= cost;
+  return '<button class="evo-cost" data-action="evoSkill" data-skill="' + k + '"' + (can ? "" : " disabled") +
+    ' aria-label="Subir ' + skillName(k) + " para " + (lvl + 1) + " por " + cost + ' XP">→ ' + (lvl + 1) + " · " + cost + " XP</button>";
+}
+
+function evolveTalentButton(t) {
+  if (t.rank >= 3) return '<span class="evo-cost max">máx.</span>';
+  var cost = talentCost(t.rank), can = app.sheet.xp >= cost;
+  return '<button class="evo-cost" data-action="evoTalent" data-id="' + esc(t.id) + '"' + (can ? "" : " disabled") +
+    ' aria-label="Subir ' + esc(talentName(t)) + " para a categoria " + (t.rank + 1) + " por " + cost + ' XP">→ ' + (t.rank + 1) + " · " + cost + " XP</button>";
+}
 
 function repText(r) {
   return r.known
@@ -831,13 +875,6 @@ function applyConditionDamage(cond, label) {
   }
 }
 
-function payXp(cost, what) {
-  if (app.sheet.xp < cost) { toast(what + " custa " + cost + " XP; você tem " + app.sheet.xp + "."); render(); return false; }
-  app.sheet.xp -= cost;
-  toast("Gastou " + cost + " XP em " + what + ". Restam " + app.sheet.xp + ".");
-  return true;
-}
-
 function blockedBy(attrKey) {
   return CONDITIONS.filter(function (c) {
     return app.sheet.conditions[c[0]] && CONDITION_INFO[c[0]].blocks.indexOf(attrKey) !== -1;
@@ -881,9 +918,11 @@ function renderSkills() {
         var lvl = app.sheet.skills[sk[0]];
         return '<div class="skill-row">' +
           '<span class="name">' + sk[1] + "</span>" +
-          '<button class="btn-step" data-action="skill" data-skill="' + sk[0] + '" data-delta="-1" aria-label="Diminuir ' + sk[1] + '"' + (lvl <= 0 ? " disabled" : "") + ">−</button>" +
-          '<span class="level" aria-label="Nível ' + lvl + '">' + lvl + "</span>" +
-          '<button class="btn-step" data-action="skill" data-skill="' + sk[0] + '" data-delta="1" aria-label="Aumentar ' + sk[1] + '"' + (lvl >= MAX_SKILL ? " disabled" : "") + ">+</button>" +
+          (app.evolve
+            ? '<span class="level" aria-label="Nível ' + lvl + '">' + lvl + "</span>" + evolveSkillButton(sk[0], lvl)
+            : '<button class="btn-step" data-action="skill" data-skill="' + sk[0] + '" data-delta="-1" aria-label="Diminuir ' + sk[1] + '"' + (lvl <= 0 ? " disabled" : "") + ">−</button>" +
+              '<span class="level" aria-label="Nível ' + lvl + '">' + lvl + "</span>" +
+              '<button class="btn-step" data-action="skill" data-skill="' + sk[0] + '" data-delta="1" aria-label="Aumentar ' + sk[1] + '"' + (lvl >= MAX_SKILL ? " disabled" : "") + ">+</button>") +
           '<button class="btn-icon sm" data-action="openRoll" data-attr="' + a.key + '" data-skill="' + sk[0] + '" aria-label="Rolar ' + sk[1] + '">' + ICON.die + "</button>" +
         "</div>";
       }).join("") +
@@ -1128,7 +1167,9 @@ function renderTalents() {
            : '<input class="plain-input" data-bind="talent.name" data-id="' + esc(t.id) + '" aria-label="Nome do talento" placeholder="Nome do talento" value="' + esc(t.name) + '">') +
         '<div class="small muted">' + group + (ranked ? " · Categoria " + t.rank : "") + "</div>" +
       "</div>" +
-      (ranked
+      (ranked && app.evolve
+        ? '<span class="level" aria-label="Categoria ' + t.rank + '">' + t.rank + "</span>" + evolveTalentButton(t)
+        : ranked
         ? '<button class="btn-step" data-action="talentRank" data-id="' + esc(t.id) + '" data-delta="-1" aria-label="Diminuir categoria"' + (t.rank <= 1 ? " disabled" : "") + ">−</button>" +
           '<span class="level" aria-label="Categoria ' + t.rank + '">' + t.rank + "</span>" +
           '<button class="btn-step" data-action="talentRank" data-id="' + esc(t.id) + '" data-delta="1" aria-label="Aumentar categoria"' + (t.rank >= 3 ? " disabled" : "") + ">+</button>"
@@ -1159,7 +1200,7 @@ function renderTalents() {
     '<div class="list">' + (rows || '<p class="muted" style="margin:0">Nenhum talento ainda. Escolher a ascendência já adiciona o talento dela.</p>') + "</div>" +
     '<div class="adder"><label for="f-add-talent" class="sr-only">Adicionar talento</label>' +
       '<select id="f-add-talent" class="field grow">' + picker + "</select>" +
-      '<button class="btn-add" data-action="talentAdd">Adicionar</button></div>' +
+      '<button class="btn-add" data-action="talentAdd">' + (app.evolve ? "Aprender · 3 XP" : "Adicionar") + "</button></div>" +
   "</section>";
 }
 
@@ -1691,13 +1732,6 @@ var actions = {
     var k = el.dataset.skill, d = +el.dataset.delta, s = app.sheet;
     var from = s.skills[k], to = clamp(from + d, 0, MAX_SKILL);
     if (to === from) return;
-    // Com "gastar XP" ligado: subir custa 5 × o novo nível; descer devolve (para corrigir engano).
-    if (s.xpMode) {
-      var cost = 5 * Math.max(from, to);
-      if (d > 0 && !payXp(cost, skillName(k) + " " + to)) return false;
-      if (d < 0) { s.xp += cost; toast("Devolveu " + cost + " XP."); }
-      if (d > 0 && to === 1) toast("Pelo livro, para aprender uma perícia nova você precisa tê-la usado com sucesso nesta sessão.");
-    }
     s.skills[k] = to;
     save();
   },
@@ -1845,27 +1879,70 @@ var actions = {
     save();
   },
 
-  xpSpend: function () {
-    var input = document.getElementById("f-xp-spend");
-    var n = input ? Math.floor(+input.value) : 0;
-    if (!(n > 0)) { toast("Quanto XP você quer gastar?"); return false; }
-    if (n > app.sheet.xp) { toast("Só há " + app.sheet.xp + " XP disponível."); return false; }
-    app.sheet.xp -= n;
-    save();
-    toast("Gastou " + n + " XP. Restam " + app.sheet.xp + ".");
+  evolveStart: function () {
+    app.evolve = { log: [] };
+    if (app.tab !== "talents") app.tab = "skills";
+    setTimeout(function () {
+      var bar = document.querySelector(".evolve-bar");
+      if (bar && bar.scrollIntoView) bar.scrollIntoView({ block: "start", behavior: "smooth" });
+    }, 0);
   },
+
+  evoSkill: function (el) {
+    var k = el.dataset.skill, lvl = app.sheet.skills[k];
+    if (lvl >= MAX_SKILL) return;
+    if (!spendEvolve(skillCost(lvl), { kind: "skill", key: k }, skillName(k) + " " + (lvl + 1))) return false;
+    app.sheet.skills[k] = lvl + 1;
+    if (lvl === 0) toast("Pelo livro, para aprender uma perícia nova você precisa tê-la usado com sucesso nesta sessão.");
+    save();
+  },
+
+  evoTalent: function (el) {
+    var t = talentById(el.dataset.id);
+    if (!t || t.rank >= 3) return;
+    if (!spendEvolve(talentCost(t.rank), { kind: "talent", id: t.id }, talentName(t) + " " + (t.rank + 1))) return false;
+    t.rank += 1;
+    save();
+  },
+
+  evolveUndo: function () {
+    var e = app.evolve && app.evolve.log.pop();
+    if (!e) return;
+    var s = app.sheet;
+    s.xp += e.cost;
+    if (e.kind === "skill") s.skills[e.key] = Math.max(0, s.skills[e.key] - 1);
+    if (e.kind === "talent") { var t = talentById(e.id); if (t) t.rank = Math.max(1, t.rank - 1); }
+    if (e.kind === "newTalent") s.talentList = s.talentList.filter(function (t) { return t.id !== e.id; });
+    toast("Desfeito: " + e.what + ". Voltaram " + e.cost + " XP.");
+    save();
+  },
+
+  evolveDone: function () {
+    var log = app.evolve ? app.evolve.log : [];
+    var spent = log.reduce(function (n, e) { return n + e.cost; }, 0);
+    app.evolve = null;
+    if (!log.length) return;
+    toast("Gastou " + spent + " XP. Restam " + app.sheet.xp + ".");
+    if (app.ts) {
+      var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
+      TS.chat.send("<b>" + who + "</b> evoluiu: " + log.map(function (e) { return clean(e.what); }).join(", ") +
+        " <size=85%><color=#A89C88>(" + spent + " XP)</color></size>", "board").catch(function () {});
+    }
+  },
+
 
   talentAdd: function () {
     var sel = document.getElementById("f-add-talent");
     var value = sel ? sel.value : "";
     if (!value) { toast("Escolha um talento na lista."); return false; }
-    // Aprender um talento novo custa 3 XP (e um Quarto de Dia de prática).
-    if (app.sheet.xpMode && !payXp(3, "um talento novo")) return false;
+    // No modo Evoluir, aprender um talento novo custa 3 XP (e um Quarto de Dia de prática).
+    var id = value === "__custom" ? "custom-" + uid() : value;
+    if (app.evolve && !spendEvolve(3, { kind: "newTalent", id: id }, "aprender " + (value === "__custom" ? "um talento" : talentName({ id: id })))) return false;
     if (value === "__custom") {
-      app.sheet.talentList.push({ id: "custom-" + uid(), name: "", rank: 1 });
+      app.sheet.talentList.push({ id: id, name: "", rank: 1 });
       focusLast('[data-bind="talent.name"]');
     } else {
-      app.sheet.talentList.push({ id: value, rank: 1 });
+      app.sheet.talentList.push({ id: id, rank: 1 });
     }
     save();
   },
@@ -1875,12 +1952,6 @@ var actions = {
     if (!t) return;
     var to = clamp(t.rank + d, 1, 3);
     if (to === t.rank) return;
-    // Subir de categoria custa 3 × a nova categoria; descer devolve.
-    if (app.sheet.xpMode) {
-      var cost = 3 * Math.max(t.rank, to);
-      if (d > 0 && !payXp(cost, talentName(t) + " " + to)) return false;
-      if (d < 0) { app.sheet.xp += cost; toast("Devolveu " + cost + " XP."); }
-    }
     t.rank = to;
     save();
   },
@@ -2041,12 +2112,6 @@ document.addEventListener("change", function (ev) {
   if (el.dataset && el.dataset.weight) {
     var gw = gearById(el.dataset.weight);
     if (gw && W.WEIGHTS[el.value]) { gw.weight = el.value; save(); render(); }
-    return;
-  }
-  if (el.hasAttribute && el.hasAttribute("data-xpmode")) {
-    app.sheet.xpMode = el.checked;
-    save();
-    toast(el.checked ? "Evoluir perícias e talentos agora desconta XP." : "Evoluir não desconta mais XP.");
     return;
   }
   if (el.dataset && el.dataset.coin) {

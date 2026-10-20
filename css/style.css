@@ -547,7 +547,16 @@ details.late[open] summary { margin-bottom: 8px; }
 
 /* ---------- Reputação e experiência ---------- */
 
-.repxp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.card.repxp { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; }
+.stat-row { display: grid; grid-template-columns: 96px 1fr auto; align-items: center; gap: 10px; min-height: 44px; }
+.stat-row + .stat-row { border-top: 1px solid var(--surface-2); padding-top: 6px; }
+.stat-row .stepper { justify-content: flex-start; gap: 10px; }
+.stat-row .stat-num { font-size: 24px; min-width: 28px; }
+.btn-add.slim { height: 36px; padding: 0 12px; font-size: 14px; }
+.evolve-bar { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 10px; border: 1.5px solid var(--success); background: #2A2416; }
+.evo-cost { height: 32px; padding: 0 10px; flex-shrink: 0; border-radius: 8px; border: 1px solid var(--success); background: #2E2614; color: var(--success); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.evo-cost:disabled { border-color: var(--border); background: transparent; color: var(--muted); }
+.evo-cost.max { display: inline-flex; align-items: center; border-color: var(--border); background: transparent; color: var(--muted); font-weight: 400; }
 .card.stat { display: flex; flex-direction: column; gap: 8px; }
 .card.stat .btn-icon.sm { width: 36px; height: 36px; }
 .stepper { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
