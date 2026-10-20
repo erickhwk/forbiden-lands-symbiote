@@ -67,6 +67,8 @@ function defaultSheet() {
     body: "",
     clothes: "",
     reputation: 0,    // 0 a 10 (o livro não tem teto; a ficha para em 10)
+    coins: { cobre: 0, prata: 0, ouro: 0 },
+    xpMode: false,    // gastar XP ao evoluir perícias e talentos
     xp: 0,            // XP disponível para gastar
     xpTotal: 0,       // XP ganho na vida do personagem
     pride: "",
@@ -96,6 +98,8 @@ function migrate(saved) {
   if (AGES.some(function (a) { return a[0] === saved.age; })) base.age = saved.age;
   base.prideUsedSession = !!saved.prideUsedSession;
   base.reputation = clamp(saved.reputation | 0, 0, MAX_REP);
+  if (saved.coins) ["cobre", "prata", "ouro"].forEach(function (k) { base.coins[k] = Math.max(0, saved.coins[k] | 0); });
+  base.xpMode = !!saved.xpMode;
   if (Array.isArray(saved.injuries)) {
     base.injuries = saved.injuries.filter(function (x) { return x && x.name; }).map(function (x) {
       return { id: String(x.id || uid()), table: String(x.table || ""), code: x.code | 0, name: String(x.name), effect: String(x.effect || ""),
@@ -752,7 +756,37 @@ function renderRepXp() {
       '<div class="xp-spend"><label for="f-xp-spend" class="sr-only">XP a gastar</label>' +
         '<input id="f-xp-spend" class="field" type="number" min="1" inputmode="numeric" placeholder="XP">' +
         '<button class="btn-add" data-action="xpSpend"' + (s.xp ? "" : " disabled") + ">Gastar</button></div>" +
+      '<label class="check"><input type="checkbox" data-xpmode' + (s.xpMode ? " checked" : "") + "> Gastar XP ao evoluir</label>" +
     "</div>" +
+  "</section>" +
+  (app.session ? renderSessionEnd() : '<button class="btn-ghost" data-action="sessionOpen">' + ICON.star + "Fim de sessão: ganhar XP</button>");
+}
+
+/* Perguntas de XP do fim da sessão (Manual do Jogador, p. 39), com palavras próprias. */
+var SESSION_QUESTIONS = [
+  "Participou da sessão",
+  "Viajou por pelo menos um hexágono novo do mapa",
+  "Descobriu uma nova área de aventura",
+  "Derrotou um ou mais monstros",
+  "Encontrou um tesouro (1 ouro ou mais)",
+  "Construiu uma função nova na fortaleza",
+  "Ativou o Orgulho",
+  "Sofreu por causa do Segredo Sombrio",
+  "Arriscou a vida por outro personagem",
+  "Fez algo extraordinário"
+];
+
+function renderSessionEnd() {
+  var st = app.session, n = st.checks.filter(Boolean).length;
+  return '<section class="card session" aria-label="Fim de sessão">' +
+    '<div class="row between"><h2 class="section-title" style="margin:0">Fim de sessão</h2><span class="small muted">1 XP por sim</span></div>' +
+    '<div class="checks">' + SESSION_QUESTIONS.map(function (q, i) {
+      return '<label class="check"><input type="checkbox" data-session="' + i + '"' + (st.checks[i] ? " checked" : "") + "> " + q + "</label>";
+    }).join("") + "</div>" +
+    '<label class="check feat"><input type="checkbox" data-session-feat' + (st.feat ? " checked" : "") + "> Feito grandioso ou terrível, desses que viram lenda: +1 Reputação (o Mestre decide)</label>" +
+    '<p class="small muted" style="margin:0">O Mestre tem a palavra final sobre o XP. Encerrar também libera o Orgulho para a próxima sessão.</p>' +
+    '<div class="row" style="gap:8px"><button class="btn-add" data-action="sessionApply">Ganhar ' + n + " XP" + (st.feat ? " e 1 de Reputação" : "") + "</button>" +
+    '<button class="btn-ghost slim" data-action="sessionClose">Cancelar</button></div>' +
   "</section>";
 }
 
@@ -792,11 +826,64 @@ function applyReputation(values) {
   }
 }
 
+/*
+ * Efeitos das condições (resumo próprio do Manual do Jogador, capítulo 5).
+ * blocks: atributos que não se recuperam (exceto por magia).
+ * tick: dano periódico, aplicado pelo botão.
+ */
+var CONDITION_INFO = {
+  faminto: { blocks: ["forca"], tick: { label: "Passou uma semana", dmg: { forca: 1 } },
+    text: "Não recupera Força (só por magia). 1 de dano em Força por semana; Acabado assim, morre depois de mais uma semana sem comer. Comer acaba com a condição." },
+  sedento: { blocks: ["forca", "agilidade", "astucia", "empatia"], tick: { label: "Passou um dia", dmg: { forca: 1, agilidade: 1 } },
+    text: "Não recupera nenhum atributo (só por magia). 1 de dano em Força e Agilidade por dia; Acabado assim, morre depois de mais um dia sem água. Beber acaba com a condição." },
+  exausto: { blocks: ["astucia"], tick: { label: "Passou um dia", dmg: { astucia: 1 } },
+    text: "Não recupera Astúcia (só por magia). 1 de dano em Astúcia por dia; se ficar Acabado assim, desmaia e dorme. Dormir um Quarto de Dia acaba com a condição." },
+  congelando: { blocks: ["forca", "astucia"], tick: { label: "Falhou em Resiliência", dmg: { forca: 1, astucia: 1 } },
+    text: "Não recupera Força nem Astúcia. Role Resiliência nos intervalos do frio; cada falha causa 1 de dano em Força e Astúcia. Acabado assim, morre na próxima rolagem. Pode alucinar." }
+};
+
+function applyConditionDamage(cond, label) {
+  var dmg = CONDITION_INFO[cond].tick.dmg, parts = [], broke = [];
+  Object.keys(dmg).forEach(function (k) {
+    var a = app.sheet.attrs[k], was = a.cur;
+    a.cur = Math.max(0, a.cur - dmg[k]);
+    if (was > a.cur) parts.push((was - a.cur) + " em " + attrByKey(k).name);
+    if (was > 0 && a.cur === 0) broke.push(attrByKey(k).name);
+  });
+  toast(label + ": " + (parts.length ? parts.join(", ") : "nenhum dano (já em 0)") + (broke.length ? " · " + broke.join(" e ") + " Acabada" : "") + ".");
+  if (app.ts && parts.length) {
+    var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
+    TS.chat.send("<b>" + who + "</b> · " + label + ": <color=#E0604E>" + parts.join(", ") + "</color>" +
+      (broke.length ? "\n<color=#E0604E><b>" + broke.join(" e ").toUpperCase() + " ACABADA</b></color>" : ""), "board").catch(function () {});
+  }
+}
+
+function payXp(cost, what) {
+  if (app.sheet.xp < cost) { toast(what + " custa " + cost + " XP; você tem " + app.sheet.xp + "."); render(); return false; }
+  app.sheet.xp -= cost;
+  toast("Gastou " + cost + " XP em " + what + ". Restam " + app.sheet.xp + ".");
+  return true;
+}
+
+function blockedBy(attrKey) {
+  return CONDITIONS.filter(function (c) {
+    return app.sheet.conditions[c[0]] && CONDITION_INFO[c[0]].blocks.indexOf(attrKey) !== -1;
+  }).map(function (c) { return c[1]; });
+}
+
 function renderConditions() {
+  var active = CONDITIONS.filter(function (c) { return app.sheet.conditions[c[0]]; });
   return '<section aria-label="Condições"><h2 class="eyebrow" style="margin-bottom:8px">Condições</h2><div class="conds">' +
     CONDITIONS.map(function (c) {
       return '<button class="toggle" data-action="toggleCond" data-cond="' + c[0] + '" aria-pressed="' + !!app.sheet.conditions[c[0]] + '">' + c[1] + "</button>";
-    }).join("") + "</div></section>";
+    }).join("") + "</div>" +
+    (active.length ? '<div class="cond-info">' + active.map(function (c) {
+      var info = CONDITION_INFO[c[0]];
+      var dmg = Object.keys(info.tick.dmg).map(function (k) { return info.tick.dmg[k] + " " + attrByKey(k).name; }).join(", ");
+      return '<div class="cond-item"><strong>' + c[1] + ".</strong> " + esc(info.text) +
+        '<button class="link-btn inline" data-action="condTick" data-cond="' + c[0] + '">' + info.tick.label + ": aplicar " + dmg + "</button></div>";
+    }).join("") + "</div>" : "") +
+  "</section>";
 }
 
 function renderTabs() {
@@ -884,6 +971,7 @@ function renderGear() {
 
   return '<section role="tabpanel" aria-label="Equipamento" class="stack">' +
     renderLoad() +
+    renderCoins() +
     renderResources() +
     '<h2 class="section-title">Itens</h2>' +
     '<div class="list">' + (rows || '<p class="muted" style="margin:0">Nenhum item ainda.</p>') + "</div>" +
@@ -895,6 +983,30 @@ function renderGear() {
 }
 
 /* ---------- Consumíveis (Dados de Recurso) ---------- */
+
+/* Moedas: uma a uma não pesam; cada 100 moedas valem meio item (100 leve, 200 normal, 400 pesado). */
+function coinTotal() { var c = app.sheet.coins; return c.cobre + c.prata + c.ouro; }
+function coinWeight() { return Math.floor(coinTotal() / 100) * 0.5; }
+
+function renderCoins() {
+  var c = app.sheet.coins, w = coinWeight();
+  var value = c.cobre + c.prata * 10 + c.ouro * 100; // em cobre
+  return '<section class="stack" aria-label="Moedas"><div class="row between"><h2 class="section-title" style="margin:0">Moedas</h2>' +
+    '<span class="small muted">' + (w ? "pesam " + W.fmt(w) + " na carga" : "ainda não pesam") + "</span></div>" +
+    '<div class="coins">' + [["cobre", "Cobre"], ["prata", "Prata"], ["ouro", "Ouro"]].map(function (k) {
+      return '<label class="coin"><span class="small muted">' + k[1] + "</span>" +
+        '<input class="field" type="number" min="0" inputmode="numeric" data-coin="' + k[0] + '" value="' + c[k[0]] + '"></label>';
+    }).join("") + "</div>" +
+    '<p class="small muted" style="margin:0">Valem ' + fmtMoney(value) + ". 10 cobres = 1 prata, 10 pratas = 1 ouro. A cada 100 moedas, meio item de carga.</p></section>";
+}
+
+function fmtMoney(copper) {
+  var o = Math.floor(copper / 100), p = Math.floor((copper % 100) / 10), c = copper % 10, out = [];
+  if (o) out.push(o + " ouro");
+  if (p) out.push(p + (p === 1 ? " prata" : " pratas"));
+  if (c || !out.length) out.push(c + (c === 1 ? " cobre" : " cobres"));
+  return out.join(", ");
+}
 
 function renderResources() {
   var res = app.sheet.resources;
@@ -1211,7 +1323,10 @@ function loadStatus() {
   // Cada consumível que ainda tem dado conta como um item normal.
   var consumables = R.KINDS.filter(function (k) { return s.resources[k.key] > 0; })
     .map(function () { return { weight: "normal" }; });
-  return W.status(s.gear.concat(consumables), s.attrs.forca.max, packerRank());
+  // Moedas: meio item a cada 100.
+  var coins = [];
+  for (var i = 0; i < Math.floor(coinTotal() / 100); i++) coins.push({ weight: "leve" });
+  return W.status(s.gear.concat(consumables, coins), s.attrs.forca.max, packerRank());
 }
 
 /* Itens com Bônus de Equipamento (os que podem entrar numa rolagem). */
@@ -1561,7 +1676,10 @@ var actions = {
 
   setAttr: function (el) {
     var a = app.sheet.attrs[el.dataset.attr], v = +el.dataset.value;
+    var before = a.cur;
     a.cur = a.cur === v ? v - 1 : v;
+    var blocked = blockedBy(el.dataset.attr);
+    if (a.cur > before && blocked.length) toast(blocked.join(" e ") + ": " + attrByKey(el.dataset.attr).name + " só se recupera por magia.");
     // Recuperou: da próxima vez que ficar Acabado, rola de novo.
     if (a.cur > 0 && app.sheet.injuryRolled[el.dataset.attr] != null) app.sheet.injuryRolled[el.dataset.attr] = false;
     save();
@@ -1584,12 +1702,30 @@ var actions = {
   toggleCond: function (el) {
     var k = el.dataset.cond;
     app.sheet.conditions[k] = !app.sheet.conditions[k];
+    // Hipotérmico: 1 de dano em Força e Astúcia assim que a condição começa.
+    if (k === "congelando" && app.sheet.conditions[k]) applyConditionDamage(k, "Hipotérmico");
+    save();
+  },
+
+  condTick: function (el) {
+    var k = el.dataset.cond;
+    var c = CONDITIONS.filter(function (x) { return x[0] === k; })[0];
+    applyConditionDamage(k, c ? c[1] : k);
     save();
   },
 
   skill: function (el) {
-    var k = el.dataset.skill;
-    app.sheet.skills[k] = clamp(app.sheet.skills[k] + (+el.dataset.delta), 0, MAX_SKILL);
+    var k = el.dataset.skill, d = +el.dataset.delta, s = app.sheet;
+    var from = s.skills[k], to = clamp(from + d, 0, MAX_SKILL);
+    if (to === from) return;
+    // Com "gastar XP" ligado: subir custa 5 × o novo nível; descer devolve (para corrigir engano).
+    if (s.xpMode) {
+      var cost = 5 * Math.max(from, to);
+      if (d > 0 && !payXp(cost, skillName(k) + " " + to)) return false;
+      if (d < 0) { s.xp += cost; toast("Devolveu " + cost + " XP."); }
+      if (d > 0 && to === 1) toast("Pelo livro, para aprender uma perícia nova você precisa tê-la usado com sucesso nesta sessão.");
+    }
+    s.skills[k] = to;
     save();
   },
 
@@ -1736,6 +1872,30 @@ var actions = {
     save();
   },
 
+  sessionOpen: function () {
+    var checks = SESSION_QUESTIONS.map(function () { return false; });
+    checks[0] = true;                                   // estava na sessão
+    if (app.sheet.prideUsedSession) checks[6] = true;   // usou o Orgulho
+    app.session = { checks: checks, feat: false };
+  },
+
+  sessionClose: function () { app.session = null; },
+
+  sessionApply: function () {
+    var st = app.session, s = app.sheet;
+    var n = st.checks.filter(Boolean).length;
+    s.xp += n; s.xpTotal += n;
+    if (st.feat) s.reputation = clamp(s.reputation + 1, 0, MAX_REP);
+    s.prideUsedSession = false;
+    app.session = null;
+    save();
+    toast("Fim de sessão: +" + n + " XP" + (st.feat ? " e +1 de Reputação" : "") + ".");
+    if (app.ts) {
+      var who = (s.name || "Personagem").replace(/[<>]/g, "");
+      TS.chat.send("<b>" + who + "</b> · fim de sessão: <color=#E8B84A><b>+" + n + " XP</b></color>" + (st.feat ? " · +1 Reputação" : ""), "board").catch(function () {});
+    }
+  },
+
   xpSpend: function () {
     var input = document.getElementById("f-xp-spend");
     var n = input ? Math.floor(+input.value) : 0;
@@ -1750,6 +1910,8 @@ var actions = {
     var sel = document.getElementById("f-add-talent");
     var value = sel ? sel.value : "";
     if (!value) { toast("Escolha um talento na lista."); return false; }
+    // Aprender um talento novo custa 3 XP (e um Quarto de Dia de prática).
+    if (app.sheet.xpMode && !payXp(3, "um talento novo")) return false;
     if (value === "__custom") {
       app.sheet.talentList.push({ id: "custom-" + uid(), name: "", rank: 1 });
       focusLast('[data-bind="talent.name"]');
@@ -1760,8 +1922,17 @@ var actions = {
   },
 
   talentRank: function (el) {
-    var t = talentById(el.dataset.id);
-    if (t) t.rank = clamp(t.rank + (+el.dataset.delta), 1, 3);
+    var t = talentById(el.dataset.id), d = +el.dataset.delta;
+    if (!t) return;
+    var to = clamp(t.rank + d, 1, 3);
+    if (to === t.rank) return;
+    // Subir de categoria custa 3 × a nova categoria; descer devolve.
+    if (app.sheet.xpMode) {
+      var cost = 3 * Math.max(t.rank, to);
+      if (d > 0 && !payXp(cost, talentName(t) + " " + to)) return false;
+      if (d < 0) { app.sheet.xp += cost; toast("Devolveu " + cost + " XP."); }
+    }
+    t.rank = to;
     save();
   },
 
@@ -1921,6 +2092,21 @@ document.addEventListener("change", function (ev) {
   if (el.dataset && el.dataset.weight) {
     var gw = gearById(el.dataset.weight);
     if (gw && W.WEIGHTS[el.value]) { gw.weight = el.value; save(); render(); }
+    return;
+  }
+  if (el.hasAttribute && el.hasAttribute("data-xpmode")) {
+    app.sheet.xpMode = el.checked;
+    save();
+    toast(el.checked ? "Evoluir perícias e talentos agora desconta XP." : "Evoluir não desconta mais XP.");
+    return;
+  }
+  if (el.dataset && el.dataset.session != null && app.session) { app.session.checks[+el.dataset.session] = el.checked; render(); return; }
+  if (el.hasAttribute && el.hasAttribute("data-session-feat") && app.session) { app.session.feat = el.checked; render(); return; }
+  if (el.dataset && el.dataset.coin) {
+    app.sheet.coins[el.dataset.coin] = Math.max(0, Math.floor(+el.value) || 0);
+    save();
+    // O change dispara no blur; redesenhar na hora quebra o foco do próximo campo.
+    setTimeout(render, 0);
     return;
   }
   if (field === "kin") { setKin(el.value); save(); render(); return; }

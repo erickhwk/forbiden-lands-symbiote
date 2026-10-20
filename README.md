@@ -4,11 +4,12 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 
 ## O que tem
 
-- Atributos com dano (clique nos quadradinhos), Força de Vontade e condições.
-- Reputação de 0 a 10, que acompanha a idade (Jovem 0, Adulto 1, Idoso 2) e tem botão para rolar se o personagem é reconhecido. Experiência com XP disponível e total ganho.
+- Atributos com dano (clique nos quadradinhos), Força de Vontade e condições. Cada condição ativa mostra o que causa, tem botão para aplicar o dano periódico (Hipotérmico já tira 1 de Força e de Astúcia ao começar) e avisa quando você tenta recuperar um atributo que ela bloqueia.
+- Reputação de 0 a 10, que acompanha a idade (Jovem 0, Adulto 1, Idoso 2) e tem botão para rolar se o personagem é reconhecido. Experiência com XP disponível e total ganho; "Gastar XP ao evoluir" desconta o custo do livro ao subir perícias (5 × o novo nível) e talentos (3 × a nova categoria, 3 para um novo), e "Fim de sessão" soma 1 XP por pergunta do livro respondida com sim, +1 de Reputação por feito grandioso, e libera o Orgulho.
 - Aviso claro quando um atributo fica Acabado: o que acontece com o personagem e como ele volta. O chat da mesa também avisa.
 - As 16 perícias, com nível e botão de rolar.
 - Ascendência e profissão escolhidas em lista. A ascendência já adiciona o talento dela.
+- Moedas de cobre, prata e ouro, com o valor total; cada 100 moedas pesam meio item na carga.
 - Consumíveis (comida, água, flechas e tochas) como Dados de Recurso, de D6 a D12. O botão Usar rola o dado na bandeja do TaleSpire: com 1 ou 2 ele desce um passo, e com 1 ou 2 no D6 o recurso acaba. O resultado vai para o chat. Ao escolher a profissão, a ficha preenche os dados iniciais dela.
 - Carga calculada sozinha: capacidade de Força base × 2 (mais o talento Empacotador), peso de cada item do livro (pequeno, leve, normal, pesado ou sem peso para recipientes) e aviso de sobrecarga com o que ela causa.
 - Equipamento escolhido do catálogo, com o Bônus de Equipamento do livro. Item que chega a bônus 0 aparece como quebrado, e item danificado pode ser reparado com um clique.

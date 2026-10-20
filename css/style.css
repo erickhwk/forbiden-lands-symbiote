@@ -586,3 +586,17 @@ textarea.field.mono { min-height: 0; font-family: ui-monospace, "Cascadia Mono",
 .lethal-line { display: flex; gap: 6px; color: #FFD9D2; }
 .lethal-line svg { flex-shrink: 0; color: var(--bane); }
 .injury-heal { gap: 8px; }
+
+/* ---------- Condições, moedas, XP e fim de sessão ---------- */
+
+.cond-info { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.cond-item { font-size: 13px; line-height: 1.45; padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--accent); background: var(--surface); }
+.cond-item .link-btn.inline { display: block; margin-top: 4px; }
+.coins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.coin { display: flex; flex-direction: column; gap: 4px; }
+.coin .field { width: 100%; }
+.check { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--accent); flex-shrink: 0; }
+.card.session { display: flex; flex-direction: column; gap: 10px; border-color: var(--success); }
+.checks { display: flex; flex-direction: column; gap: 8px; }
+.check.feat { padding-top: 8px; border-top: 1px solid var(--border); }
