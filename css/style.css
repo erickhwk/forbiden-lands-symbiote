@@ -423,7 +423,7 @@ select.field { width: 100%; margin-top: 10px; }
 
 /* ---------- Iniciativa ---------- */
 
-.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+.modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
 .modes button {
   height: 36px; border: none; border-radius: 7px;
   background: transparent; color: var(--muted); font-size: 14px; font-weight: 600;

@@ -5,7 +5,8 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 ## O que tem
 
 - Atributos com dano (clique nos quadradinhos), Força de Vontade e condições. Cada condição ativa mostra o que causa, tem botão para aplicar o dano periódico (Hipotérmico já tira 1 de Força e de Astúcia ao começar) e avisa quando você tenta recuperar um atributo que ela bloqueia.
-- Reputação de 0 a 10, que acompanha a idade (Jovem 0, Adulto 1, Idoso 2) e tem botão para rolar se o personagem é reconhecido. Experiência com XP disponível e total ganho; "Gastar XP ao evoluir" desconta o custo do livro ao subir perícias (5 × o novo nível) e talentos (3 × a nova categoria, 3 para um novo), e "Fim de sessão" soma 1 XP por pergunta do livro respondida com sim, +1 de Reputação por feito grandioso, e libera o Orgulho.
+- Reputação de 0 a 10, que acompanha a idade (Jovem 0, Adulto 1, Idoso 2) e tem botão para rolar se o personagem é reconhecido. Experiência com XP disponível e total ganho; "Gastar XP ao evoluir" desconta o custo do livro ao subir perícias (5 × o novo nível) e talentos (3 × a nova categoria, 3 para um novo).
+- Fim de sessão (aba Sessão, só para quem pode ser mestre): o Mestre escolhe quanto XP dar e para quem, marca +1 de Reputação para quem fez algo lendário, e as fichas abertas dos jogadores recebem na hora e liberam o Orgulho.
 - Aviso claro quando um atributo fica Acabado: o que acontece com o personagem e como ele volta. O chat da mesa também avisa.
 - As 16 perícias, com nível e botão de rolar.
 - Ascendência e profissão escolhidas em lista. A ascendência já adiciona o talento dela.

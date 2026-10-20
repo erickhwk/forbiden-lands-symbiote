@@ -11,6 +11,8 @@
  *   mestre -> ficha  { t: "ch", id, o: [...] } escolha entre cartas extras
  *   ficha -> mestre  { t: "pk", id, c }        carta escolhida
  *   mestre -> todos  { t: "end" }              fim do combate
+ *   mestre -> ficha  { t: "xp", n, r }         XP (e Reputação) do fim de sessão; libera o Orgulho
+ *   ficha -> mestre  { t: "xpok", n, r }       recebido
  */
 "use strict";
 
@@ -82,6 +84,11 @@ function handleSyncMessage(ev) {
       render();
       return;
     }
+    if (msg.t === "xpok") {
+      var g = app.grant;
+      if (g && g.sent[from.id]) { g.ok[from.id] = true; render(); }
+      return;
+    }
     if (msg.t === "pk" && app.combat) {
       var e = I.find(app.combat, msg.id);
       if (e && e.clientId === from.id && e.options) {
@@ -93,6 +100,7 @@ function handleSyncMessage(ev) {
   }
 
   if (msg.t === "who") { sayHello(); return; }
+  if (msg.t === "xp") { receiveXp(msg); return; }
   if (msg.t === "st") { app.table.combat = msg; app.table.choose = null; render(); return; }
   if (msg.t === "ch") { app.table.choose = msg; render(); return; }
   if (msg.t === "end") { app.table.combat = null; app.table.choose = null; render(); return; }
@@ -180,9 +188,10 @@ function afterCombatChange(opts) {
 function renderModeBar() {
   if (!app.canGM) return "";
   return '<nav class="modes" aria-label="Modo">' +
-    '<button data-action="mode" data-mode="sheet" aria-pressed="' + (app.mode !== "combat") + '">Ficha</button>' +
+    '<button data-action="mode" data-mode="sheet" aria-pressed="' + (app.mode !== "combat" && app.mode !== "session") + '">Ficha</button>' +
     '<button data-action="mode" data-mode="combat" aria-pressed="' + (app.mode === "combat") + '">Iniciativa' +
       (app.combat && app.combat.phase === "running" ? ' <span class="dot-live"></span>' : "") + "</button>" +
+    '<button data-action="mode" data-mode="session" aria-pressed="' + (app.mode === "session") + '">Sessão</button>' +
   "</nav>";
 }
 
@@ -328,6 +337,61 @@ function renderSwap(c) {
   "</section>";
 }
 
+/* ---------- Sessão: o Mestre concede XP ---------- */
+
+/*
+ * app.grant: { xp, rep: {clientId: true}, skip: {clientId: true}, sent: {...}, ok: {...} }
+ * Só as fichas abertas na mesa recebem. Quem não estiver com a ficha aberta
+ * pode somar à mão com o + do card de Experiência.
+ */
+function renderSession() {
+  if (!app.grant) app.grant = { xp: 5, rep: {}, skip: {}, sent: {}, ok: {} };
+  var g = app.grant;
+  var ids = Object.keys(app.table.sheets);
+  var html = '<header><p class="eyebrow">Fim de sessão</p><h1 class="title">Conceder XP</h1></header>' +
+    '<p class="small muted" style="margin:0">O XP vai para as fichas abertas na mesa agora. Cada ficha soma o XP, ganha a Reputação marcada e libera o Orgulho para a próxima sessão.</p>' +
+    '<section class="card stat"><div class="row between"><span class="eyebrow">XP para cada um</span>' +
+      '<div class="stepper" style="gap:10px">' +
+        '<button class="btn-step" data-action="grantXp" data-delta="-1" aria-label="Menos XP"' + (g.xp <= 0 ? " disabled" : "") + ">−</button>" +
+        '<span class="stat-num">' + g.xp + "</span>" +
+        '<button class="btn-step" data-action="grantXp" data-delta="1" aria-label="Mais XP"' + (g.xp >= 10 ? " disabled" : "") + ">+</button>" +
+      "</div></div>" +
+      '<div class="small muted">O livro dá de 0 a 10 por sessão; a média costuma ficar perto de 5.</div></section>';
+
+  if (!app.ts) {
+    html += '<div class="notice">' + ICON.warn + "<span>Fora do TaleSpire não há fichas de jogadores para receber.</span></div>";
+    return html;
+  }
+  html += '<section class="list" aria-label="Quem recebe">' + (ids.length ? ids.map(function (id) {
+    var sh = app.table.sheets[id], got = g.ok[id], sent = g.sent[id];
+    return '<div class="list-row">' +
+      '<label class="check grow"><input type="checkbox" data-grant-who="' + esc(id) + '"' + (g.skip[id] ? "" : " checked") + (sent ? " disabled" : "") + "> " +
+        "<span><strong>" + esc(sh.name) + "</strong>" + (sh.player ? ' <span class="small muted">' + esc(sh.player) + "</span>" : "") + "</span></label>" +
+      '<label class="check small"><input type="checkbox" data-grant-rep="' + esc(id) + '"' + (g.rep[id] ? " checked" : "") + (sent ? " disabled" : "") + "> +1 Reputação</label>" +
+      (got ? '<span class="small" style="color:var(--success)">' + ICON.check + " recebeu</span>" : sent ? '<span class="small muted">enviado…</span>' : "") +
+    "</div>";
+  }).join("") : '<p class="muted" style="margin:0">Nenhuma ficha de jogador aberta na mesa agora. Peça para os jogadores abrirem a ficha.</p>') + "</section>";
+
+  var chosen = ids.filter(function (id) { return !g.skip[id] && !g.sent[id]; });
+  html += '<div class="actions"><button class="btn-primary" data-action="grantSend"' + (chosen.length ? "" : " disabled") + ">" + ICON.star +
+    "Conceder " + g.xp + " XP" + (chosen.length ? " para " + E.plural(chosen.length, "personagem", "personagens") : "") + "</button>" +
+    (Object.keys(g.sent).length ? '<button class="link-btn" data-action="grantReset">Nova concessão</button>' : "") +
+    '<button class="link-btn" data-action="grantRefresh">Atualizar lista de fichas</button></div>';
+  return html;
+}
+
+/* Na ficha do jogador: recebe o XP do Mestre. */
+function receiveXp(msg) {
+  var s = app.sheet, n = Math.max(0, msg.n | 0), r = msg.r ? 1 : 0;
+  s.xp += n; s.xpTotal += n;
+  if (r) s.reputation = clamp(s.reputation + 1, 0, MAX_REP);
+  s.prideUsedSession = false;
+  save();
+  render();
+  toast("O Mestre concedeu " + n + " XP" + (r ? " e +1 de Reputação" : "") + ". O Orgulho está disponível de novo.");
+  syncSend({ t: "xpok", n: n, r: r }, "gms");
+}
+
 /* ---------- Visão do jogador ---------- */
 
 function renderPlayerCombat() {
@@ -362,6 +426,27 @@ function renderPlayerCombat() {
 /* ------------------------------------------------------------------ */
 
 Object.assign(actions, {
+  grantXp: function (el) { app.grant.xp = clamp(app.grant.xp + (+el.dataset.delta), 0, 10); },
+
+  grantRefresh: function () { syncSend({ t: "who" }); toast("Pedindo para as fichas abertas se apresentarem…"); },
+
+  grantReset: function () { app.grant = null; },
+
+  grantSend: function () {
+    var g = app.grant, names = [], reps = [];
+    Object.keys(app.table.sheets).forEach(function (id) {
+      if (g.skip[id] || g.sent[id]) return;
+      syncSend({ t: "xp", n: g.xp, r: g.rep[id] ? 1 : 0 }, id);
+      g.sent[id] = true;
+      names.push(app.table.sheets[id].name);
+      if (g.rep[id]) reps.push(app.table.sheets[id].name);
+    });
+    if (names.length) {
+      chat("<b>Fim de sessão</b> · <color=#E8B84A><b>+" + g.xp + " XP</b></color> para " + names.map(clean).join(", ") +
+        (reps.length ? " · +1 Reputação: " + reps.map(clean).join(", ") : ""));
+    }
+  },
+
   mode: function (el) { app.mode = el.dataset.mode; window.scrollTo(0, 0); },
 
   combatKind: function (el) {
@@ -497,6 +582,13 @@ function addCombatant(data, quiet) {
   if (input) input.value = "";
   if (!quiet) afterCombatChange();
 }
+
+document.addEventListener("change", function (ev) {
+  var el = ev.target, g = app.grant;
+  if (!g || !el.dataset) return;
+  if (el.dataset.grantWho) { if (el.checked) delete g.skip[el.dataset.grantWho]; else g.skip[el.dataset.grantWho] = true; render(); }
+  if (el.dataset.grantRep) { if (el.checked) g.rep[el.dataset.grantRep] = true; else delete g.rep[el.dataset.grantRep]; render(); }
+});
 
 document.addEventListener("input", function (ev) {
   var el = ev.target;

@@ -350,6 +350,7 @@ function render() {
   }
   var body = app.view === "roll" ? renderRoll()
     : app.mode === "combat" && app.canGM ? renderCombat()
+    : app.mode === "session" && app.canGM ? renderSession()
     : renderSheet();
   root.innerHTML = '<div class="app">' + (app.view === "roll" ? "" : renderModeBar()) + body + "</div>";
 }
@@ -758,37 +759,9 @@ function renderRepXp() {
         '<button class="btn-add" data-action="xpSpend"' + (s.xp ? "" : " disabled") + ">Gastar</button></div>" +
       '<label class="check"><input type="checkbox" data-xpmode' + (s.xpMode ? " checked" : "") + "> Gastar XP ao evoluir</label>" +
     "</div>" +
-  "</section>" +
-  (app.session ? renderSessionEnd() : '<button class="btn-ghost" data-action="sessionOpen">' + ICON.star + "Fim de sessão: ganhar XP</button>");
-}
-
-/* Perguntas de XP do fim da sessão (Manual do Jogador, p. 39), com palavras próprias. */
-var SESSION_QUESTIONS = [
-  "Participou da sessão",
-  "Viajou por pelo menos um hexágono novo do mapa",
-  "Descobriu uma nova área de aventura",
-  "Derrotou um ou mais monstros",
-  "Encontrou um tesouro (1 ouro ou mais)",
-  "Construiu uma função nova na fortaleza",
-  "Ativou o Orgulho",
-  "Sofreu por causa do Segredo Sombrio",
-  "Arriscou a vida por outro personagem",
-  "Fez algo extraordinário"
-];
-
-function renderSessionEnd() {
-  var st = app.session, n = st.checks.filter(Boolean).length;
-  return '<section class="card session" aria-label="Fim de sessão">' +
-    '<div class="row between"><h2 class="section-title" style="margin:0">Fim de sessão</h2><span class="small muted">1 XP por sim</span></div>' +
-    '<div class="checks">' + SESSION_QUESTIONS.map(function (q, i) {
-      return '<label class="check"><input type="checkbox" data-session="' + i + '"' + (st.checks[i] ? " checked" : "") + "> " + q + "</label>";
-    }).join("") + "</div>" +
-    '<label class="check feat"><input type="checkbox" data-session-feat' + (st.feat ? " checked" : "") + "> Feito grandioso ou terrível, desses que viram lenda: +1 Reputação (o Mestre decide)</label>" +
-    '<p class="small muted" style="margin:0">O Mestre tem a palavra final sobre o XP. Encerrar também libera o Orgulho para a próxima sessão.</p>' +
-    '<div class="row" style="gap:8px"><button class="btn-add" data-action="sessionApply">Ganhar ' + n + " XP" + (st.feat ? " e 1 de Reputação" : "") + "</button>" +
-    '<button class="btn-ghost slim" data-action="sessionClose">Cancelar</button></div>' +
   "</section>";
 }
+
 
 function repText(r) {
   return r.known
@@ -1872,30 +1845,6 @@ var actions = {
     save();
   },
 
-  sessionOpen: function () {
-    var checks = SESSION_QUESTIONS.map(function () { return false; });
-    checks[0] = true;                                   // estava na sessão
-    if (app.sheet.prideUsedSession) checks[6] = true;   // usou o Orgulho
-    app.session = { checks: checks, feat: false };
-  },
-
-  sessionClose: function () { app.session = null; },
-
-  sessionApply: function () {
-    var st = app.session, s = app.sheet;
-    var n = st.checks.filter(Boolean).length;
-    s.xp += n; s.xpTotal += n;
-    if (st.feat) s.reputation = clamp(s.reputation + 1, 0, MAX_REP);
-    s.prideUsedSession = false;
-    app.session = null;
-    save();
-    toast("Fim de sessão: +" + n + " XP" + (st.feat ? " e +1 de Reputação" : "") + ".");
-    if (app.ts) {
-      var who = (s.name || "Personagem").replace(/[<>]/g, "");
-      TS.chat.send("<b>" + who + "</b> · fim de sessão: <color=#E8B84A><b>+" + n + " XP</b></color>" + (st.feat ? " · +1 Reputação" : ""), "board").catch(function () {});
-    }
-  },
-
   xpSpend: function () {
     var input = document.getElementById("f-xp-spend");
     var n = input ? Math.floor(+input.value) : 0;
@@ -2100,8 +2049,6 @@ document.addEventListener("change", function (ev) {
     toast(el.checked ? "Evoluir perícias e talentos agora desconta XP." : "Evoluir não desconta mais XP.");
     return;
   }
-  if (el.dataset && el.dataset.session != null && app.session) { app.session.checks[+el.dataset.session] = el.checked; render(); return; }
-  if (el.hasAttribute && el.hasAttribute("data-session-feat") && app.session) { app.session.feat = el.checked; render(); return; }
   if (el.dataset && el.dataset.coin) {
     app.sheet.coins[el.dataset.coin] = Math.max(0, Math.floor(+el.value) || 0);
     save();
