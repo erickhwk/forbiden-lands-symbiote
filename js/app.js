@@ -1295,6 +1295,8 @@ function attackInfo(r) {
   if (!r.skillKey || !ATTACK_SKILLS[r.skillKey]) return null;
   var g = gearById(r.gearId);
   var weapon = g && g.kind === "weapon" ? g : null;
+  // Item fora do catálogo usado na rolagem: não sabemos o dano, melhor não chutar.
+  if (g && !weapon) return null;
   if (!weapon && r.skillKey !== "combate") return null;
   var base = weapon ? weapon.dmg : 1;
   var name = weapon ? (weapon.name || "Arma") : "Desarmado";
