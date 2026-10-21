@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.9.0"; // atualizado por tools/release.py
+var APP_VERSION = "0.9.1"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -95,7 +95,7 @@ function defaultSheet() {
 function migrate(saved) {
   var base = defaultSheet();
   if (!saved || typeof saved !== "object") return base;
-  ["name", "talents", "face", "body", "clothes", "pride", "darkSecret", "relationships"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
+  ["name", "talents", "face", "body", "clothes", "pride", "darkSecret", "relationships", "seenVersion"].forEach(function (k) { if (typeof saved[k] === "string") base[k] = saved[k]; });
   if (AGES.some(function (a) { return a[0] === saved.age; })) base.age = saved.age;
   base.prideUsedSession = !!saved.prideUsedSession;
   base.reputation = clamp(saved.reputation | 0, 0, MAX_REP);
@@ -379,6 +379,7 @@ function renderSheet() {
   var s = app.sheet;
   return [
     renderHeader(),
+    renderNews(),
     renderPlayerCombat(),
     renderPlayerRequests(),
     renderPlayerJourney(),

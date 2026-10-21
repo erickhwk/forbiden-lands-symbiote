@@ -689,3 +689,9 @@ details.spell[open] summary .item-name { color: var(--accent); }
 .chip-btn.jy-need { border-color: var(--border-strong); background: var(--surface-2); color: var(--muted); }
 .chip-btn.jy-need.on { border-color: var(--success); background: #2E2414; color: var(--success); }
 .jy-strip { display: flex; flex-direction: column; gap: 4px; }
+
+/* Novidades */
+.card.news { display: flex; flex-direction: column; gap: 8px; border-color: var(--accent); }
+.news-title { display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--display); font-size: 17px; font-weight: 600; color: var(--accent); }
+.news-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.card.news .btn-add { align-self: flex-start; }

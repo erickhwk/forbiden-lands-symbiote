@@ -50,7 +50,7 @@ def zipdir(name, entries):
     print(path)
 
 zipdir("ficha-forbidden-lands-%s.zip" % v,
-       [(x, x) for x in ["manifest.json", "index.html", "icon.png", "README.md", "LICENSE", "css", "js", "fonts"]])
+       [(x, x) for x in ["manifest.json", "index.html", "icon.png", "README.md", "CHANGELOG.md", "LICENSE", "css", "js", "fonts"]])
 test = json.load(open(os.path.join(ROOT, "online/manifest.json"), encoding="utf-8"))
 test["name"] = "Ficha FL (teste)"
 test["summary"] = "Versão em teste da Ficha Forbidden Lands (ramo main). Só para o Mestre conferir antes de publicar."

@@ -42,7 +42,7 @@ function onlineSheets() {
 function renderHome() {
   var ids = Object.keys(app.table.sheets), live = onlineSheets();
   var alerts = groupAlerts();
-  var html = '<header><p class="eyebrow">Painel do Mestre</p><h1 class="title">Mesa</h1></header>';
+  var html = '<header><p class="eyebrow">Painel do Mestre</p><h1 class="title">Mesa</h1></header>' + renderNews();
 
   if (alerts.length) {
     html += '<button class="banner home-alert" data-action="mode" data-mode="group">' +

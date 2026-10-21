@@ -2,6 +2,10 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.9.1
+
+- A ficha avisa as novidades na primeira vez que abre numa versão nova.
+
 ## 0.9.0
 
 - Painel do Mestre com home de cards: Grupo, Iniciativa, Jornada, Pedir rolagem e Fim de sessão, cada um com o estado ao vivo, e alertas urgentes no topo.
