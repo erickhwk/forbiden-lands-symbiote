@@ -2,6 +2,12 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.13.0
+
+- Regra da mesa: o óleo de lâmpada virou Dado de Recurso, como as tochas. Aparece em Consumíveis para quem tem lanterna ou lamparina; role a cada Quarto de Dia em que a luz ficou acesa. Adicionar "Óleo de Lâmpada" do catálogo sobe o dado um passo.
+- O Escudo do Mestre ganhou um quadro de Luz: tocha, lanterna, lamparina e vela.
+- Novo esquema de cores, Breu e sangue: preto, cinza e vermelho vivo. Escolha na engrenagem do cabeçalho.
+
 ## 0.12.1
 
 - Nova página de Configurações, aberta pela engrenagem no cabeçalho da ficha (e na home do Mestre). Lá ficam o esquema de cores, o tamanho do texto, a cópia de segurança (exportar, importar e limpar) e o número da versão. A aba Histórico fica só com o personagem.

@@ -14,7 +14,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - As 16 perícias, com nível e botão de rolar.
 - Ascendência e profissão escolhidas em lista. A ascendência já adiciona o talento dela.
 - Moedas de cobre, prata e ouro, com o valor total; cada 100 moedas pesam meio item na carga.
-- Consumíveis (comida, água, flechas e tochas) como Dados de Recurso, de D6 a D12. O botão Usar rola o dado na bandeja do TaleSpire: com 1 ou 2 ele desce um passo, e com 1 ou 2 no D6 o recurso acaba. O resultado vai para o chat. Ao escolher a profissão, a ficha preenche os dados iniciais dela.
+- Consumíveis (comida, água, flechas e tochas) como Dados de Recurso, de D6 a D12. O botão Usar rola o dado na bandeja do TaleSpire: com 1 ou 2 ele desce um passo, e com 1 ou 2 no D6 o recurso acaba. O resultado vai para o chat. Ao escolher a profissão, a ficha preenche os dados iniciais dela. Regra da mesa: o óleo de lâmpada também é Dado de Recurso, rolado a cada Quarto de Dia com a lanterna ou a lamparina acesa, e só aparece para quem tem uma delas.
 - Carga calculada sozinha: capacidade de Força base × 2 (mais o talento Empacotador), peso de cada item do livro (pequeno, leve, normal, pesado ou sem peso para recipientes) e aviso de sobrecarga com o que ela causa.
 - Equipamento escolhido do catálogo, com o Bônus de Equipamento do livro. Item que chega a bônus 0 aparece como quebrado, e item danificado pode ser reparado com um clique.
 - Talentos escolhidos do catálogo (da ascendência, da profissão e gerais), com categoria 1 a 3.

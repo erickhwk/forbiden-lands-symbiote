@@ -6,6 +6,7 @@
  *   couro      Couro e osso: marrom gasto, molduras cor de osso
  *   musgo      Musgo e bronze: verde-oliva de floresta, terroso
  *   pergaminho Pergaminho: claro, tinta marrom e vermelho de sangue
+ *   breu       Breu e sangue: preto, molduras cinza e vermelho vivo nos detalhes
  */
 
 /* ---------- Ferro frio ---------- */
@@ -121,3 +122,27 @@ html[data-tema="pergaminho"] .mattr.broken { background: #F3DCD3; }
 html[data-tema="pergaminho"] .mattr.broken .mattr-num { color: #8E2A1E; }
 html[data-tema="pergaminho"] .jy-quarters span.dark { background: #D3C3A2; }
 html[data-tema="pergaminho"] .notice.warn svg { color: #9A6B12; }
+
+/* ---------- Breu e sangue ---------- */
+html[data-tema="breu"] {
+  --bg: #0B0B0C; --surface: #151516; --surface-2: #1E1E20;
+  --border: #2C2C2F; --border-strong: #46464A;
+  --text: #EDEDED; --muted: #9B9BA0;
+  --accent: #D11F2A; --accent-bg: #2A0A0D;
+  --brass: #8E8E94; --brass-hi: #D6D6DA; --brass-dim: rgba(142, 142, 148, 0.3);
+  --frame-rgb: 142, 142, 148;
+  --glow-rgb: 209, 31, 42; --glow-a: 0.12;
+  --rim: linear-gradient(180deg, #B4B4BA, #7A7A80 45%, #46464A);
+  --shield-hi: #18181A; --shield-lo: #0E0E0F;
+  --seal-hi: #26262A; --seal-lo: #0F0F10;
+  --leather-hi: #1E1E21; --leather-lo: #151517;
+  --on-hi: #4A0D12; --on-lo: #2A070A;
+  --action-hi: #EA3640; --action-lo: #8E1018; --action-fg: #FFFFFF;
+  --gem: linear-gradient(135deg, #FF5A62, #D11F2A 55%, #7A0C12);
+  --gem-glow: 0 0 9px rgba(209, 31, 42, 0.5);
+  --die-skill: #C41E28;
+  --diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M4 0L8 4L4 8L0 4Z' fill='%23D11F2A'/%3E%3C/svg%3E");
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .9 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html[data-tema="breu"] .toggle[aria-pressed="true"] { border-color: var(--accent); color: #FFFFFF; }
+html[data-tema="breu"] .tabs button[aria-selected="true"] { border-bottom-color: var(--accent); }

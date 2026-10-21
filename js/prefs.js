@@ -18,7 +18,8 @@ var THEMES = [
   ["ferro", "Ferro frio", "#1B1E22", "#9AA2AA", "#8E3326"],
   ["couro", "Couro e osso", "#211912", "#C9BA98", "#8A2F22"],
   ["musgo", "Musgo e bronze", "#181C17", "#A2AE7C", "#9A4A2A"],
-  ["pergaminho", "Pergaminho", "#EFE6D2", "#6B4E31", "#8E2A1E"]
+  ["pergaminho", "Pergaminho", "#EFE6D2", "#6B4E31", "#8E2A1E"],
+  ["breu", "Breu e sangue", "#151516", "#A0A0A6", "#D11F2A"]
 ];
 var PREFS_KEY = "ficha-forbidden-lands-prefs";
 var URL_THEME = document.documentElement.getAttribute("data-tema");

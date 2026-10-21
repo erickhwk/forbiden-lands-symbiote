@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.12.1"; // atualizado por tools/release.py
+var APP_VERSION = "0.13.0"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -1083,7 +1083,8 @@ function fmtMoney(copper) {
 function renderResources() {
   var res = app.sheet.resources;
   var busy = Object.keys(app.resRolls).length > 0;
-  var rows = R.KINDS.map(function (k) {
+  var gearNames = app.sheet.gear.map(function (g) { return g.name; });
+  var rows = R.KINDS.filter(function (k) { return R.shows(k, res, gearNames); }).map(function (k) {
     var d = res[k.key];
     var pending = Object.keys(app.resRolls).some(function (id) { return app.resRolls[id] === k.key; });
     var last = app.lastRes && app.lastRes.key === k.key ? app.lastRes : null;
@@ -1091,7 +1092,7 @@ function renderResources() {
     if (pending) note = '<div class="res-note">' + ICON.tray + "<span>D" + d + " na bandeja. Jogue no tabuleiro.</span></div>";
     else if (last) note = '<div class="res-note' + (last.dropped ? " bad" : "") + '">' + esc(resText(last)) + "</div>";
     return '<div class="res-row' + (d ? "" : " none") + '">' +
-      '<div class="grow"><div class="item-name">' + k.name + "</div>" + note + "</div>" +
+      '<div class="grow"><div class="item-name">' + k.name + "</div>" + (k.hint && !note ? '<div class="small muted">' + esc(k.hint) + "</div>" : "") + note + "</div>" +
       '<button class="btn-step" data-action="resStep" data-key="' + k.key + '" data-delta="-1" aria-label="Diminuir Dado de Recurso de ' + k.name + '"' + (d ? "" : " disabled") + ">−</button>" +
       '<span class="res-die' + (d ? "" : " empty") + '" aria-label="' + (d ? "D" + d : "sem dado") + '">' + (d ? "D" + d : "—") + "</span>" +
       '<button class="btn-step" data-action="resStep" data-key="' + k.key + '" data-delta="1" aria-label="Aumentar Dado de Recurso de ' + k.name + '"' + (d >= 12 ? " disabled" : "") + ">+</button>" +
@@ -1817,6 +1818,16 @@ var actions = {
       focusLast('[data-bind="gear.name"]');
     } else {
       var it = C.gear(value);
+      var oil = R.kind("oleo");
+      if (it.name === oil.item) {
+        app.sheet.resources.oleo = R.step(app.sheet.resources.oleo, 1);
+        toast("Óleo é Dado de Recurso nesta mesa: agora D" + app.sheet.resources.oleo + ", em Consumíveis.");
+        save();
+        return;
+      }
+      if (oil.lamps.indexOf(it.name) !== -1 && !app.sheet.resources.oleo) {
+        toast(it.name + " precisa de óleo. Em Consumíveis, use o + do Óleo para cada unidade.");
+      }
       var item = { id: uid(), name: it.name, weight: it.weight || "normal", info: it.info || "", kind: it.kind || "" };
       if (it.kind === "armor") {
         item.bonus = item.base = it.armor; item.nb = false; item.part = it.part;

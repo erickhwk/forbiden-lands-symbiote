@@ -1,5 +1,8 @@
 /*
  * Dados de Recurso do Forbidden Lands: comida, água, flechas e tochas.
+ * Óleo de lâmpada também, como regra da mesa: no livro ele é um item comum,
+ * mas aqui é rolado como as tochas, a cada Quarto de Dia com a lanterna ou a
+ * lamparina acesa. Só aparece para quem tem uma delas (ou já tem óleo).
  *
  * Puro: não toca no DOM nem na API do TaleSpire.
  *   - Cada consumível é um dado: D6, D8, D10 ou D12 (0 = não tem).
@@ -16,8 +19,18 @@
     { key: "comida", name: "Comida", verb: "comeu", gone: "a comida acabou" },
     { key: "agua", name: "Água", verb: "bebeu", gone: "a água acabou" },
     { key: "flechas", name: "Flechas", verb: "disparou uma flecha", gone: "as flechas acabaram" },
-    { key: "tochas", name: "Tochas", verb: "acendeu uma tocha", gone: "as tochas acabaram" }
+    { key: "tochas", name: "Tochas", verb: "acendeu uma tocha", gone: "as tochas acabaram" },
+    { key: "oleo", name: "Óleo", verb: "gastou óleo da lanterna", gone: "o óleo acabou", house: true,
+      lamps: ["Lanterna", "Lamparina a Óleo"], item: "Óleo de Lâmpada",
+      hint: "Regra da mesa · role a cada Quarto de Dia com a lanterna ou a lamparina acesa" }
   ];
+
+  /* O consumível aparece na ficha? Os da regra da mesa só com a lanterna (ou com óleo). */
+  function shows(k, res, gearNames) {
+    if (!k.house) return true;
+    if (norm(res && res[k.key]) > 0) return true;
+    return (gearNames || []).some(function (n) { return k.lamps.indexOf(n) !== -1; });
+  }
 
   // Dados iniciais por profissão (Manual do Jogador, capítulo 2).
   var START = {
@@ -72,7 +85,7 @@
 
   function kind(key) { return KINDS.filter(function (k) { return k.key === key; })[0] || null; }
 
-  var api = { STEPS: STEPS, KINDS: KINDS, START: START, step: step, use: use, roll: roll, empty: empty, startFor: startFor, loadOf: loadOf, kind: kind, norm: norm };
+  var api = { STEPS: STEPS, KINDS: KINDS, START: START, step: step, use: use, roll: roll, empty: empty, startFor: startFor, loadOf: loadOf, kind: kind, norm: norm, shows: shows };
 
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FLResources = api;

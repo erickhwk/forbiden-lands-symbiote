@@ -210,7 +210,7 @@ function renderModeBar() { return renderGmNav(); }
 
 var ATTR_SHORT = [["forca", "For"], ["agilidade", "Agi"], ["astucia", "Ast"], ["empatia", "Emp"]];
 var COND_LABEL = { faminto: "Faminto", sedento: "Desidratado", exausto: "Insone", congelando: "Hipotérmico" };
-var RES_LABEL = [["comida", "Comida"], ["agua", "Água"], ["flechas", "Flechas"], ["tochas", "Tochas"]];
+var RES_LABEL = [["comida", "Comida"], ["agua", "Água"], ["flechas", "Flechas"], ["tochas", "Tochas"], ["oleo", "Óleo"]];
 
 /* Alertas que pedem atenção do Mestre agora. */
 function groupAlerts() {
@@ -275,7 +275,7 @@ function renderMember(id, sh) {
     }).join("") + "</div>";
   }
 
-  html += '<div class="member-res small">' + RES_LABEL.map(function (r) {
+  html += '<div class="member-res small">' + RES_LABEL.filter(function (r) { return r[0] !== "oleo" || s.resources.oleo; }).map(function (r) {
     var d = s.resources[r[0]];
     return '<span class="' + (d === 0 && (r[0] === "comida" || r[0] === "agua") ? "warn-text" : d ? "" : "muted") + '">' + r[1] + " " + (d ? "D" + d : "—") + "</span>";
   }).join("") + '<span class="muted">XP ' + s.xp + "/" + s.xpTotal + " · Rep " + s.reputation + "</span></div>";

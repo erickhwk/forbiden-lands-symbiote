@@ -231,6 +231,8 @@ Clique em **Usar** para rolar o dado na bandeja:
 
 O resultado vai para o chat. Achou ou comprou uma unidade? Use o **+** para subir um passo.
 
+**Óleo (regra da mesa).** No livro, o óleo de lâmpada é um item comum. Nesta mesa, ele é Dado de Recurso como as tochas: a linha **Óleo** aparece para quem tem uma lanterna ou uma lamparina. Role a cada Quarto de Dia em que a luz ficou acesa. Ao adicionar "Óleo de Lâmpada" do catálogo, o dado sobe um passo em vez de virar item.
+
 <br clear="right">
 
 ## Talentos
@@ -316,7 +318,7 @@ A **engrenagem** no cabeçalho da ficha (e na home do Mestre) abre as Configura�
 
 **Aparência** vale só para o seu computador, em todas as campanhas:
 
-- **Esquema de cores**: Ferro e latão, Ferro frio, Couro e osso, Musgo e bronze ou Pergaminho (claro). Cada pessoa da mesa escolhe o seu.
+- **Esquema de cores**: Ferro e latão, Ferro frio, Couro e osso, Musgo e bronze, Pergaminho (claro) ou Breu e sangue. Cada pessoa da mesa escolhe o seu.
 - **Tamanho do texto**: Normal, Grande ou Maior.
 
 **Cópia de segurança** é da ficha:

@@ -19,7 +19,7 @@
 
   var ATTRS = ["forca", "agilidade", "astucia", "empatia"];
   var CONDS = ["faminto", "sedento", "exausto", "congelando"];
-  var RES = ["comida", "agua", "flechas", "tochas"];
+  var RES = ["comida", "agua", "flechas", "tochas", "oleo"];
   var LIMIT = 440;  // deixa folga para o envelope da mensagem (500 no total)
 
   function encode(sheet, derived) {

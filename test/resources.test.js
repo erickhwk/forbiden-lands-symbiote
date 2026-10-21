@@ -26,8 +26,8 @@ test("subir e descer passos respeita D6 a D12", () => {
 });
 
 test("dados iniciais da profissão", () => {
-  assert.deepStrictEqual(R.startFor("cacador"), { comida: 8, agua: 8, flechas: 10, tochas: 0 });
-  assert.deepStrictEqual(R.startFor("ladino"), { comida: 6, agua: 6, flechas: 0, tochas: 0 });
+  assert.deepStrictEqual(R.startFor("cacador"), { comida: 8, agua: 8, flechas: 10, tochas: 0, oleo: 0 });
+  assert.deepStrictEqual(R.startFor("ladino"), { comida: 6, agua: 6, flechas: 0, tochas: 0, oleo: 0 });
   assert.deepStrictEqual(R.startFor(""), R.empty());
 });
 
@@ -38,4 +38,14 @@ test("na carga, cada consumível com dado vale um item", () => {
 test("rolagem local respeita os lados", () => {
   assert.strictEqual(R.roll(8, () => 0.9999), 8);
   assert.strictEqual(R.roll(8, () => 0), 1);
+});
+
+test("óleo (regra da mesa) só aparece com lanterna, lamparina ou óleo guardado", () => {
+  const oleo = R.kind("oleo");
+  assert.strictEqual(R.shows(oleo, { oleo: 0 }, ["Arco Longo"]), false);
+  assert.strictEqual(R.shows(oleo, { oleo: 0 }, ["Lanterna"]), true);
+  assert.strictEqual(R.shows(oleo, { oleo: 0 }, ["Lamparina a Óleo"]), true);
+  assert.strictEqual(R.shows(oleo, { oleo: 6 }, []), true);
+  assert.strictEqual(R.shows(R.kind("tochas"), { tochas: 0 }, []), true);
+  assert.strictEqual(R.loadOf({ comida: 8, oleo: 6 }), 2);
 });

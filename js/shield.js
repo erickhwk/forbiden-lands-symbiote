@@ -161,6 +161,15 @@
           "Atacar alguém ao alcance das mãos exige antes um sucesso em Patrulha, sem gastar ação.",
           "Não dá para atirar a Curta ou mais. Ao alcance das mãos ou Perto, só com sucesso em Patrulha, e todo tiro no escuro tem −2."
         ] },
+        { title: "Luz", table: [
+          ["Fonte", "Ilumina", "Dura"],
+          ["Tocha", "Perto", "Rola o Dado de Recurso de Tochas a cada turno (15 min)"],
+          ["Lanterna", "Perto", "Um Quarto de Dia, com óleo"],
+          ["Lamparina a óleo", "Perto, só em ambiente fechado", "Um Quarto de Dia, com óleo"],
+          ["Vela de sebo", "Ao alcance das mãos", "Um Quarto de Dia"]
+        ], notes: [
+          "Regra da mesa: o óleo de lâmpada é Dado de Recurso. Role a cada Quarto de Dia com a lanterna ou a lamparina acesa; com 1 ou 2, desce um passo."
+        ] },
         { title: "Veneno", table: [
           ["Veneno", "Efeito total (1 por rodada até Acabado)", "Efeito limitado"],
           ["Letal", "Força (ferimento atípico)", "1 em Força"],
