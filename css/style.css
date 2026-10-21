@@ -813,3 +813,7 @@ details.spell[open] summary .item-name { color: var(--accent); }
 .hp-alert { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.4; color: var(--success); }
 .hp-alert svg { flex-shrink: 0; width: 16px; height: 16px; margin-top: 1px; }
 .best-row .chip-s { white-space: nowrap; flex-shrink: 0; }
+.best-str { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
+.best-str .field { width: 64px; margin-top: 0; }
+.best-trait.weak { border-left-color: var(--info); }
+.atk-roll.flat { padding-left: 10px; }

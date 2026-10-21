@@ -287,6 +287,7 @@ function loadSheet() {
       app.sheet = migrate(data.sheet);
       if (data.combat && Array.isArray(data.combat.entries)) app.combat = data.combat;
       if (data.journey && typeof data.journey.day === "number") { app.journey = data.journey; app.journey.review = !!app.journey.review; }
+      if (Array.isArray(data.bestiary)) { app.bestiaryCustom = data.bestiary; if (window.FLBestiary) window.FLBestiary.setCustom(data.bestiary); }
     } else {
       app.sheet = migrate(data);
     }
@@ -300,7 +301,7 @@ function save() {
   clearTimeout(saveTimer);
   if (DEMO) return;
   saveTimer = setTimeout(function () {
-    var raw = JSON.stringify({ v: 2, sheet: app.sheet, combat: app.combat || null, journey: app.journey || null });
+    var raw = JSON.stringify({ v: 2, sheet: app.sheet, combat: app.combat || null, journey: app.journey || null, bestiary: app.bestiaryCustom && app.bestiaryCustom.length ? app.bestiaryCustom : null });
     if (app.ts) {
       TS.localStorage.campaign.setBlob(raw).catch(function (err) {
         console.error("Falha ao salvar", err);

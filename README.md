@@ -33,6 +33,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Painel do Mestre: quem tem permissão de Mestre abre direto numa home de cards (Grupo, Iniciativa, Jornada, Pedir rolagem e Fim de sessão), cada um com o estado ao vivo; a ficha de personagem do Mestre fica a um clique. O Grupo mostra ao vivo, a partir das fichas abertas dos jogadores, atributos, quem está Acabado, ferimentos (com alerta para os letais), condições, Força de Vontade, armadura, sobrecarga, consumíveis, XP e Reputação; quem fecha o Symbiote aparece como sem sinal.
 - Pedir rolagem: o Mestre pede uma perícia, um atributo ou um Dado de Recurso, com modificador e motivo, a um ou mais jogadores. A ficha do jogador mostra o pedido com a rolagem já montada, e os resultados voltam para o painel.
 - Jornada: dia e Quartos de Dia com a luz de cada estação, terreno com movimento e modificadores de Coletar e Caçar, atividade de cada personagem (com avisos de atividades repetidas, grupo dividido e falta de vigia), rolagens prontas com o modificador certo, escuro, marcha forçada e as necessidades do dia (comer, beber, dormir), marcando Faminto, Desidratado ou Insone na ficha de quem precisar.
+- Bestiário: fichas de monstros, mortos-vivos, insetoides e animais (números do Guia do Mestre, efeitos resumidos), ataque sorteado e rolado na bandeja, gerador de demônio e Força por cópia na Iniciativa.
 - Escudo do Mestre: as regras do Manual do Jogador resumidas para consulta (combate, zonas, dano e perigos, conflito social, jornada), com busca, e tabelas para rolar na bandeja (infortúnios da jornada, caça, infortúnio mágico, ferimentos graves para PNJs), com opção de mostrar no chat e de pedir a rolagem que o infortúnio exige.
 - Iniciativa com o baralho de 10 cartas (aba só para quem pode ser mestre): montar o combate com as fichas abertas na mesa, a fila do TaleSpire, os minis selecionados ou nomes escritos; grupos de PNJs iguais; cartas extras por surpresa ou Rápido como um Raio, com escolha da carta; rodadas, vez de cada um, marcação de ação rápida e lenta, troca de cartas e FINTAR. A ordem e a vez aparecem no chat e na ficha de cada jogador. O chat marca essas rolagens como "rolado na ficha".
 
@@ -98,6 +99,8 @@ npm test
 - `js/gm.js`: home do painel do Mestre e pedidos de rolagem.
 - `js/travel.js`: tela da Jornada.
 - `js/escudo.js`: tela do Escudo do Mestre.
+- `js/bestiary.js`: dados do Bestiário e gerador de demônio, puro.
+- `js/bestiario.js`: tela do Bestiário e a Força na Iniciativa.
 - `js/prefs.js`: Configurações (esquema de cores, tamanho do texto, cópia de segurança).
 - `js/news.js`: aviso de novidades, lido do `CHANGELOG.md`.
 - `js/app.js`: ficha, telas, bandeja de dados, chat e armazenamento.

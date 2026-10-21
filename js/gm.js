@@ -81,7 +81,7 @@ function renderHome() {
 
   var foes = c ? c.entries.filter(function (e) { return e.mon; }) : [];
   cards.push(homeCard("bestiary", ICON.claw, "Bestiário",
-    E.plural(B.LIST.filter(function (m) { return m.kind === "monstro"; }).length, "monstro", "monstros") + " e animais",
+    E.plural(B.all().length, "criatura", "criaturas") + " · gerador de demônio",
     foes.length ? E.plural(foes.length, "criatura", "criaturas") + " no combate" : "Ataques e Força na Iniciativa",
     foes.length ? "live" : ""));
 
