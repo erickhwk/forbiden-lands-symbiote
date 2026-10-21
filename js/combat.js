@@ -97,6 +97,7 @@ function handleSyncMessage(ev) {
       render();
       return;
     }
+    if (msg.t === "rr") { receiveRequestResult(from.id, msg); return; }
     if (msg.t === "xpok") {
       var g = app.grant;
       if (g && g.sent[from.id]) { g.ok[from.id] = true; render(); }
@@ -114,6 +115,7 @@ function handleSyncMessage(ev) {
 
   if (msg.t === "who") { sayHello(); return; }
   if (msg.t === "xp") { receiveXp(msg); return; }
+  if (msg.t === "rq") { receiveRequest(msg); return; }
   if (msg.t === "st") { app.table.combat = msg; app.table.choose = null; render(); return; }
   if (msg.t === "ch") { app.table.choose = msg; render(); return; }
   if (msg.t === "end") { app.table.combat = null; app.table.choose = null; render(); return; }
@@ -200,20 +202,7 @@ function afterCombatChange(opts) {
 /* Tela do mestre                                                     */
 /* ------------------------------------------------------------------ */
 
-function renderModeBar() {
-  // Fora do TaleSpire não há mesa: sem painel do Mestre.
-  if (!app.canGM || !app.ts) return "";
-  var alert = groupAlerts().length;
-  return '<nav class="modes" aria-label="Painel do Mestre">' +
-    '<button data-action="mode" data-mode="group" aria-pressed="' + (app.mode === "group") + '">Grupo' +
-      (alert ? ' <span class="dot-alert" aria-label="' + alert + ' alerta(s)"></span>' : "") + "</button>" +
-    '<button data-action="mode" data-mode="combat" aria-pressed="' + (app.mode === "combat") + '">Iniciativa' +
-      (app.combat && app.combat.phase === "running" ? ' <span class="dot-live"></span>' : "") + "</button>" +
-    '<button data-action="mode" data-mode="session" aria-pressed="' + (app.mode === "session") + '">Sessão</button>' +
-  "</nav>" +
-  '<div class="mode-sheet"><button class="link-btn inline" data-action="mode" data-mode="' + (app.mode === "sheet" ? "group" : "sheet") + '">' +
-    (app.mode === "sheet" ? "← Voltar ao painel do Mestre" : "Abrir minha ficha de personagem") + "</button></div>";
-}
+function renderModeBar() { return renderGmNav(); }
 
 /* ---------- Grupo: o estado de cada personagem ---------- */
 

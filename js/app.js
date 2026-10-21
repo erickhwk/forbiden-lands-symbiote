@@ -295,8 +295,8 @@ function start(withTaleSpire) {
   app.started = true;
   app.ts = !!withTaleSpire;
   loadSheet().then(detectRole).catch(function (err) { console.warn(err); }).then(function () {
-    // O Mestre começa no painel do grupo; a ficha fica a um clique.
-    if (app.canGM && app.ts && app.mode === "sheet") app.mode = "group";
+    // O Mestre começa na home do painel; a ficha fica a um clique.
+    if (app.canGM && app.ts && app.mode === "sheet") app.mode = "home";
     render();
     if (!app.ts) return;
     sayHello();
@@ -335,6 +335,8 @@ var ICON = {
   star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"></path></svg>',
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
+  users: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"></path><path d="M18.5 14.8c1.6.8 2.6 2.5 3 5.2"></path></svg>',
+  chevron: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>',
   spark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"></path></svg>',
   warn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L2.5 20h19L12 3.5z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>',
   cards: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 6V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-5"></path></svg>',
@@ -355,6 +357,8 @@ function render() {
   }
   var body = app.view === "roll" ? renderRoll()
     : app.view === "cast" && app.cast ? renderCast()
+    : app.mode === "home" && app.canGM ? renderHome()
+    : app.mode === "rolls" && app.canGM ? renderRequests()
     : app.mode === "group" && app.canGM ? renderGroup()
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
@@ -373,6 +377,7 @@ function renderSheet() {
   return [
     renderHeader(),
     renderPlayerCombat(),
+    renderPlayerRequests(),
     renderBrokenBanner(),
     renderAttrs(),
     renderArmor(),
@@ -1135,6 +1140,7 @@ function applyResource(key, value) {
   app.lastRes = u;
   save();
   render();
+  reportResourceToGm(key, u);
   if (app.ts) {
     var k = R.kind(key);
     var who = (app.sheet.name || "Personagem").replace(/[<>]/g, "");
@@ -2404,6 +2410,7 @@ function chatText(r) {
 
 function postToChat(r) {
   if (!app.ts) return;
+  reportRollToGm(r);
   TS.chat.send(chatText(r), "board").then(function () {
     if (app.roll === r) { r.posted = true; render(); }
   }).catch(function (err) {

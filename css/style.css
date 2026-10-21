@@ -647,3 +647,29 @@ details.spell[open] summary .item-name { color: var(--accent); }
 .spell-body { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; }
 .spell-group details.late .spell-row:first-child { border-top: none; }
 .version-line { text-align: center; margin: 8px 0 0; }
+
+/* Painel do Mestre: home */
+.gm-back { display: flex; margin-bottom: -6px; }
+.gm-back .link-btn { display: inline-flex; align-items: center; gap: 4px; }
+.home-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.home-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; color: var(--text); font: inherit; cursor: pointer; min-height: 132px; }
+.home-card:hover { border-color: var(--accent); }
+.home-card .home-icon { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border-radius: 10px; background: var(--surface-2); color: var(--accent); margin-bottom: 4px; }
+.home-title { font-family: var(--display); font-size: 17px; font-weight: 600; }
+.home-line2 { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; }
+.home-card.bad { border-color: #8A3A2E; }
+.home-card.bad .home-line2 { color: #FF9C8C; }
+.home-card.warn .home-line2 { color: var(--success); }
+.home-alert { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.home-sheet { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; color: var(--text); cursor: pointer; }
+.home-sheet .grow { display: flex; flex-direction: column; }
+.home-sheet:hover { border-color: var(--accent); }
+.avatar.sm { width: 40px; height: 40px; font-size: 15px; }
+
+/* Pedidos de rolagem */
+.rq-card { display: flex; flex-direction: column; gap: 6px; }
+.rq-row { display: flex; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 15px; }
+.rq-res.ok { color: var(--success); }
+.rq-res.bad { color: #FF9C8C; }
+.rq-ask { display: flex; flex-direction: column; gap: 8px; }
+.rq-ask + .rq-ask { border-top: 1px solid var(--border); padding-top: 10px; }
