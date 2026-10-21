@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.14.0"; // atualizado por tools/release.py
+var APP_VERSION = "0.14.1"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -1095,7 +1095,7 @@ function renderResources() {
     if (pending) note = '<div class="res-note">' + ICON.tray + "<span>D" + d + " na bandeja. Jogue no tabuleiro.</span></div>";
     else if (last) note = '<div class="res-note' + (last.dropped ? " bad" : "") + '">' + esc(resText(last)) + "</div>";
     return '<div class="res-row' + (d ? "" : " none") + '">' +
-      '<div class="grow"><div class="item-name">' + k.name + "</div>" + (k.hint && !note ? '<div class="small muted">' + esc(k.hint) + "</div>" : "") + note + "</div>" +
+      '<div class="grow"><div class="item-name">' + k.name + "</div>" + note + "</div>" +
       '<button class="btn-step" data-action="resStep" data-key="' + k.key + '" data-delta="-1" aria-label="Diminuir Dado de Recurso de ' + k.name + '"' + (d ? "" : " disabled") + ">−</button>" +
       '<span class="res-die' + (d ? "" : " empty") + '" aria-label="' + (d ? "D" + d : "sem dado") + '">' + (d ? "D" + d : "—") + "</span>" +
       '<button class="btn-step" data-action="resStep" data-key="' + k.key + '" data-delta="1" aria-label="Aumentar Dado de Recurso de ' + k.name + '"' + (d >= 12 ? " disabled" : "") + ">+</button>" +

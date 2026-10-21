@@ -2,6 +2,10 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.14.1
+
+- Óleo em Consumíveis sem o texto de regra embaixo do nome, alinhado como os outros.
+
 ## 0.14.0
 
 - Bestiário no painel do Mestre: fichas limpas de todos os monstros do Guia do Mestre, mais mortos-vivos, insetoides e animais. Cada ficha tem atributos, perícias, traços e a tabela de ataques; sorteie o ataque e role os Dados Base na sua bandeja, com o dano já calculado. Mostrar no chat é opcional.
