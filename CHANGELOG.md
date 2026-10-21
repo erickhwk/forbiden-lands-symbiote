@@ -2,6 +2,10 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.12.0
+
+- Escolha o esquema de cores da sua ficha no fim da aba Histórico (e na home do Mestre): Ferro e latão, Ferro frio, Couro e osso, Musgo e bronze ou Pergaminho. Cada um escolhe o seu; fica salvo neste computador.
+
 ## 0.11.0
 
 - Visual novo, de ferro, couro e latão: atributos em escudo heráldico, cabeçalho emoldurado, Força de Vontade em losangos, títulos com filete de latão e botões de placa forjada.
