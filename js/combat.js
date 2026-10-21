@@ -546,7 +546,11 @@ Object.assign(actions, {
     }
   },
 
-  mode: function (el) { app.mode = el.dataset.mode; window.scrollTo(0, 0); },
+  mode: function (el) {
+    app.mode = el.dataset.mode;
+    if (app.mode === "bestiary" && app.bestiary) { app.bestiary.open = null; app.bestiary.from = null; app.bestiary.entryId = null; }
+    window.scrollTo(0, 0);
+  },
 
   combatKind: function (el) {
     var e = I.find(app.combat, el.dataset.id);

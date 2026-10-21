@@ -27,6 +27,7 @@ Nas imagens estão Ylva Corvo-de-Cinza, uma caçadora humana, e Tyrgar Pedra-Fun
   - [Pedir rolagem](#pedir-rolagem)
   - [Jornada](#jornada)
   - [Escudo do Mestre](#escudo-do-mestre)
+  - [Bestiário](#bestiário)
   - [Fim de sessão](#fim-de-sessão)
 - [Dúvidas comuns](#dúvidas-comuns)
 
@@ -381,7 +382,8 @@ Quando um jogador fecha o Symbiote, o cartão dele aparece sem sinal. **Atualiza
 
 - **Da fila do TaleSpire** traz quem está na fila de iniciativa do jogo;
 - **Minis selecionados** traz as miniaturas selecionadas no tabuleiro;
-- o campo de nome cria PNJs, inclusive em grupo (×2, ×3…), e um grupo usa uma carta só.
+- o campo de nome cria PNJs, inclusive em grupo (×2, ×3…), e um grupo usa uma carta só. O campo **Força** é opcional: com ele, o PNJ ganha uma barra para descontar o dano;
+- monstros e animais entram pelo [Bestiário](#bestiário), já com a Força.
 
 **+cartas** dá cartas extras, por exemplo para quem ataca de surpresa. Rápido como um Raio já vem da ficha do jogador.
 
@@ -402,6 +404,8 @@ Quem tem cartas extras escolhe uma na própria ficha, e as outras voltam ao bara
 - **Trocar cartas** troca a carta de dois combatentes. Entre personagens jogadores, só no começo do combate ou da rodada.
 - **Fintar** marca uma troca que vale na próxima rodada.
 - **Alguém entrou no combate** adiciona gente no meio da luta.
+- **Força**: quem entrou com Força tem uma barra com **−** e **+**, uma para cada cópia de um grupo (#1, #2…). Na metade a barra fica amarela; em 0 aparece **Acabado**, e quando todos caem a linha fica riscada.
+- **Atacar** e **Ficha** aparecem nos monstros: Atacar abre a ficha com um ataque já sorteado.
 - **Encerrar combate** fecha tudo.
 
 A ordem e a vez de cada um vão para o chat da mesa.
@@ -483,6 +487,48 @@ Em **Tabelas** ficam as tabelas para rolar:
 - ferimentos graves, para os PNJs.
 
 **Rolar** coloca os dados na sua bandeja, sem ir para o chat. O resultado aparece em destaque, e você decide se usa **Mostrar no chat**. Quando o infortúnio pede uma rolagem dos jogadores, como Potência na areia movediça, aparece **Pedir … a todos**. **Ver tabela** mostra a tabela inteira com o resultado marcado. Os infortúnios de Acampamento vêm marcados "em segredo": pelo livro, o Mestre rola às escondidas e solta o infortúnio quando quiser.
+
+<br clear="right">
+
+## Bestiário
+
+<img src="img/39-bestiario.png" width="330" align="right">
+
+Fichas limpas das criaturas do **Guia do Mestre** e do **Book of Beasts**: atributos, armadura, perícias, traços e ataques. Descrição e ambientação ficam no livro; cada ficha diz a página.
+
+- **Busca** pelo nome, sem se preocupar com acento.
+- O filtro **Todos · Guia do Mestre · Book of Beasts** escolhe o livro.
+- **Sortear criatura (D66)** rola na tabela de encontro do livro escolhido e abre a ficha.
+- **Gerar demônio** monta um demônio pelas tabelas do Guia (forma, habilidade, ataques, poder especial e fraqueza). Ele fica guardado no Bestiário até você apagar.
+- **Monstros em combate** resume as regras: ataque sem forçar, sucesso extra soma dano, imune a medo, o que dá ou não dá para fazer contra um monstro.
+
+<br clear="right">
+
+<img src="img/40-monstro.png" width="330" align="right">
+
+**Na ficha do monstro:**
+
+1. **Sortear D6** escolhe o ataque da tabela, ou toque no ataque que quiser usar.
+2. **Rolar** põe os Dados Base na sua bandeja (ou **rolar aqui**). O resultado já vem calculado: sucessos e dano. Ataque de medo tira Astúcia e aparece com o número roxo.
+3. **Mostrar no chat** é opcional.
+
+Mortos-vivos, insetoides e animais lutam como pessoas: o ataque é Força + Luta + arma, e pode ser forçado.
+
+**Pôr na Iniciativa** coloca a criatura no combate com a Força dela, que você pode mudar (Harpias e Troll têm Força variável). Com ×2 ou mais, escolha se o grupo compra uma carta só ou se cada um compra a sua. A Hidra entra cabeça por cabeça.
+
+Onde o livro não dá um número, a ficha usa um valor estimado e avisa.
+
+<br clear="right">
+
+<img src="img/41-iniciativa-forca.png" width="330" align="right">
+
+Na Iniciativa, cada criatura tem a barra de Força. Quando um monstro tem um efeito que dispara na metade da Força, como a Fúria do Urso Cinzento, o aviso aparece na linha dele.
+
+<br clear="right">
+
+<img src="img/42-demonio.png" width="330" align="right">
+
+Um demônio gerado tem ficha completa, com fraqueza destacada. **Gerar outro demônio** e **Apagar este demônio** ficam no fim da ficha.
 
 <br clear="right">
 
