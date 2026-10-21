@@ -2,6 +2,11 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.10.1
+
+- Tamanho do texto: Normal, Grande ou Maior, no fim da aba Histórico e na home do Mestre. A escolha fica salva neste computador.
+- Em painéis estreitos ou com texto maior, o cabeçalho, as abas e o card de Reputação e Experiência quebram linha em vez de vazar para o lado.
+
 ## 0.10.0
 
 - Escudo do Mestre: as regras do Manual do Jogador para consultar (combate, zonas, dano e perigos, conflito social, jornada), com busca.

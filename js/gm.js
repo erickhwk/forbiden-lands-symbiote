@@ -93,7 +93,7 @@ function renderHome() {
   html += '<button class="card home-sheet" data-action="mode" data-mode="sheet">' +
     '<span class="avatar sm" aria-hidden="true">' + esc(initials(app.sheet.name)) + "</span>" +
     '<span class="grow"><strong>Minha ficha</strong><span class="small muted">' + esc(app.sheet.name || "Personagem do Mestre, se quiser jogar com um") + "</span></span>" +
-    ICON.chevron + "</button>";
+    ICON.chevron + "</button>" + renderTextSize();
   return html;
 }
 

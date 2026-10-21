@@ -711,3 +711,19 @@ details.spell[open] summary .item-name { color: var(--accent); }
 .shield-notes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
 .shield-result { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: #2E2414; border: 1px solid #8A6A2E; }
 .stat-num.sm { font-size: 20px; }
+
+/* Tamanho do texto */
+.text-size { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+
+/* Cabeçalho em painéis estreitos (ou com texto maior): quebra linha em vez de espremer */
+.who { flex-wrap: wrap; }
+.who > .grow { flex: 1 1 190px; min-width: 0; }
+.who .row { flex-wrap: wrap; row-gap: 6px; }
+.who .row .plain-select { flex: 1 1 110px; }
+/* Abas quebram linha quando não cabem (painel estreito ou texto maior) */
+.tabs { flex-wrap: wrap; }
+.tabs button { flex: 1 0 auto; padding: 0 10px; }
+/* Reputação e XP: em painel estreito, o botão desce para a linha de baixo */
+.stat-row { display: flex; flex-wrap: wrap; row-gap: 8px; }
+.stat-row > :first-child { flex: 0 0 96px; }
+.stat-row > :last-child:not(:nth-child(2)) { margin-left: auto; }

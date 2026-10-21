@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.10.0"; // atualizado por tools/release.py
+var APP_VERSION = "0.10.1"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -295,6 +295,7 @@ function start(withTaleSpire) {
   if (app.started && !switching) return;
   app.started = true;
   app.ts = !!withTaleSpire;
+  loadPrefs().then(render, function () {});
   loadSheet().then(detectRole).catch(function (err) { console.warn(err); }).then(function () {
     // O Mestre começa na home do painel; a ficha fica a um clique.
     if (app.canGM && app.ts && app.mode === "sheet") app.mode = "home";
@@ -1345,6 +1346,7 @@ function renderBackground() {
     text("relationships", "Relacionamentos", "Uma linha por personagem da mesa.", 4) +
     text("talents", "Anotações", "", 6) +
     renderBackup() +
+    renderTextSize() +
     '<p class="small muted version-line">Ficha Forbidden Lands · versão ' + APP_VERSION + "</p>" +
   "</section>";
 }
