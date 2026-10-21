@@ -200,7 +200,7 @@
       { name: "Garras", dice: 10, dmg: 2, range: "perto", fx: "Contra três alvos." },
       { name: "Mordida", dice: 12, dmg: 2, type: "cort", range: "perto", fx: "No alvo em Perto com mais metal (armas, armadura)." },
       { name: "Rugido", dice: 10, fear: true, range: "perto", all: true },
-      { name: "Chão rachado", dice: 8, dmg: 1, range: "perto", all: true, fx: "Quem falhar em Movimentação (não gasta ação) cai numa fenda: queda de D10 metros. O livro não dá o dano do golpe; aqui está 1." },
+      { name: "Chão rachado", dice: 8, dmg: 1, type: "esmag", range: "perto", all: true, fx: "Quem falhar em Movimentação (não gasta ação) cai numa fenda: queda de D10 metros. Dano estimado (o livro não dá)." },
       { name: "Cauda", dice: 9, dmg: 2, type: "esmag", range: "perto", all: true, fx: "Quem for atingido cai." },
       { name: "Nuvem ácida", dice: 12, dmg: 2, range: "perto", all: true, fx: "Quem for atingido sofre mais 1 de dano por rodada durante D6 rodadas." }
     ]
@@ -467,7 +467,7 @@
       { name: "Clarão", dice: 0, range: "perto", all: true, fx: "Quem falhar em Movimentação (não gasta ação) fica cego por D3 rodadas." },
       { name: "Atravessar", dice: 8, dmg: 2, type: "esmag", range: "maos", block: true, fx: "Num alvo." },
       { name: "Pesadelos", dice: 9, fear: true, range: "perto", fx: "Um alvo escolhido." },
-      { name: "Chamas", dice: 9, dmg: 1, range: "perto", all: true, fx: "Quem for atingido sofre 1 de dano por rodada até apagar o fogo (Movimentação, ação lenta). O livro não dá o dano do golpe; aqui está 1." },
+      { name: "Chamas", dice: 9, dmg: 1, type: "atip", range: "perto", all: true, fx: "Quem for atingido sofre 1 de dano por rodada até apagar o fogo (Movimentação, ação lenta). Dano estimado (o livro não dá)." },
       { name: "Possessão", dice: 0, range: "maos", fx: "Num alvo forte e de Astúcia baixa. Se falhar em Discernimento, o fogo-fátuo o controla e o usa contra o grupo até a mesma posição de iniciativa na rodada seguinte." }
     ]
   },

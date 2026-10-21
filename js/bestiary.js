@@ -266,7 +266,7 @@
         { name: "Cauda", text: "Se um ataque na cauda (−2) tirar sangue com arma cortante ou perfurante, a cada ataque dela role D6: de 4 a 6, ela ataca a si mesma." }
       ],
       attacks: [
-        { name: "Cauda", dice: 10, dmg: 1, type: "esmag", range: "perto", fx: "Se acertar, o alvo cai. O livro não dá o número do dano; aqui está 1." },
+        { name: "Cauda", dice: 10, dmg: 2, type: "esmag", range: "perto", fx: "Se acertar, o alvo cai. Dano estimado (o livro não dá o número)." },
         { name: "Engolir", dice: 8, dmg: 1, type: "cort", range: "maos", fx: "No alvo de maior Força. Se acertar, engole: 1 de dano por rodada, pode atacar por dentro sem Armadura e sai quando ela morrer." },
         { name: "Mordida", dice: 10, dmg: 2, type: "cort", range: "perto" },
         { name: "Pro fundo", dice: 8, dmg: 2, type: "cort", range: "perto", fx: "Se acertar, Agarrado e puxado para a água (afogamento)." },
@@ -509,8 +509,8 @@
       [16, 22, "Presas", 5, [[2, 1], [5, 2], [6, 3]], "maos"],
       [23, 26, "Chifres", 6, [[4, 2], [6, 3]], "maos"],
       [31, 32, "Tentáculos", 4, [[2, 1], [6, 2]], "perto", "Se acertar, o alvo fica Agarrado."],
-      [33, 35, "Fogo", 6, [[6, 1]], "perto", "O alvo segue sofrendo 1 de dano por rodada até apagar o fogo com Movimentação. O livro não dá o dano do golpe; aqui está 1."],
-      [36, 41, "Frio", 5, [[6, 1]], "perto", "O alvo fica Hipotérmico na hora. O livro não dá o dano do golpe; aqui está 1."],
+      [33, 35, "Fogo", 6, [[4, 1], [6, 2]], "perto", "O alvo segue sofrendo 1 de dano por rodada até apagar o fogo com Movimentação. Dano do golpe estimado (o livro não dá)."],
+      [36, 41, "Frio", 5, [[2, 1], [5, 2], [6, 3]], "perto", "O alvo fica Hipotérmico na hora. Dano estimado (o livro não dá)."],
       [42, 45, "Rugido", "d3+6", null, "perto"],
       [46, 51, "Olhar mortal", "d6+5", null, "perto"],
       [52, 56, "Arma pesada", 5, "arma", "maos"],
