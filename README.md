@@ -37,6 +37,10 @@ A ficha é salva por campanha, no próprio TaleSpire. Na aba Histórico, "Export
 
 ## Instalar
 
+O pacote do mod.io traz só o `manifest.json` e o ícone: a ficha carrega do GitHub Pages (ramo `publicado`), então cada versão nova chega sozinha na próxima vez que o Symbiote abrir, sem reinstalar. As fichas continuam salvas no TaleSpire de cada jogador, por campanha, na pasta do Symbiote.
+
+Para rodar tudo localmente (sem internet), copie o repositório inteiro para a pasta de Symbiotes:
+
 1. No TaleSpire, ative os Symbiotes em Configurações → Modding.
 2. No painel de Symbiotes, clique em "Open Symbiotes Directory".
 3. Copie esta pasta para lá. O `manifest.json` precisa ficar direto dentro da pasta do Symbiote, por exemplo:
@@ -58,6 +62,12 @@ A ficha é salva por campanha, no próprio TaleSpire. Na aba Histórico, "Export
 2. Ajuste modificador, equipamento e artefato, e clique em "Colocar na bandeja".
 3. Pegue os dados na bandeja do TaleSpire e jogue no tabuleiro.
 4. O resultado aparece na ficha e no chat. Se quiser, force: a ficha coloca na bandeja só os dados que podem ser re-rolados.
+
+## Publicar uma versão
+
+1. `python3 tools/release.py X.Y.Z` grava a versão, carimba o cache dos arquivos e gera os zips em `dist/`.
+2. Commit no `main`.
+3. Quando a versão estiver aprovada, leve o `main` para o ramo `publicado` (é ele que o GitHub Pages serve).
 
 ## Testar fora do TaleSpire
 
