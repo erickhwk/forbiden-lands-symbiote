@@ -456,8 +456,18 @@
     if (typeof m.traits === "string") m.traits = SHARED_TRAITS[m.traits];
   });
 
+  /* Outros livros (bestiary-bob.js e o que vier). */
+  var SOURCES = { gm: "Guia do Mestre", bob: "Book of Beasts" };
+  var BOOKS = (typeof module !== "undefined" && module.exports) ? [require("./bestiary-bob.js")] : [root.FLBookOfBeasts].filter(Boolean);
+  var ENCOUNTERS = {};
+  BOOKS.forEach(function (bk) {
+    bk.LIST.forEach(function (m) { m.src = m.src || bk.src; LIST.push(m); });
+    if (bk.ENCOUNTER) ENCOUNTERS[bk.src] = bk.ENCOUNTER;
+  });
+  LIST.forEach(function (m) { if (!m.src) m.src = "gm"; });
+
   /* Tabela de encontro (D66). */
-  var ENCOUNTER = [
+  var ENCOUNTER_GM = [
     [11, 12, "vinha-estranguladora"], [13, 15, "urso-cinzento"], [16, 22, "warg-da-noite"], [23, 24, "fantasma"],
     [25, 26, "carnical"], [31, 32, "esqueleto"], [33, 34, "morto-inquieto"], [35, 36, "wyvern"], [41, 42, "harpias"],
     [43, 43, "minotauro"], [44, 44, "ent"], [45, 45, "verme-jovem"], [46, 46, "polvo-gigante"], [51, 51, "serpente-marinha"],
@@ -554,7 +564,7 @@
 
     var f = pick(DEMON.forms, d66());
     var m = {
-      id: "demonio-" + Math.floor(r() * 1e9).toString(36), name: "Demônio " + f[2].toLowerCase(), kind: "monstro", page: DEMON.page,
+      id: "demonio-" + Math.floor(r() * 1e9).toString(36), name: "Demônio " + f[2].toLowerCase(), kind: "monstro", src: "gm", page: DEMON.page,
       custom: "demonio", str: d6() + f[3], agi: f[4], wits: 3, emp: 3,
       armor: f[5] === "d6" ? d6() : f[5] === "d6+3" ? d6() + 3 : 0, move: 1,
       skills: [], traits: [], attacks: [], extraCards: 0
@@ -641,9 +651,10 @@
   }
 
   var KIND_ORDER = { monstro: 0, comum: 1, animal: 2 };
-  function search(q) {
+  function search(q, src) {
     var f = fold(q).trim();
     var out = all().filter(function (m) { return !f || fold(m.name).indexOf(f) !== -1 || fold(m.group).indexOf(f) !== -1; });
+    if (src) out = out.filter(function (m) { return m.custom ? src === "gm" : m.src === src; });
     return out.sort(function (a, b) {
       if (a.kind !== b.kind) return KIND_ORDER[a.kind] - KIND_ORDER[b.kind];
       if (!!a.custom !== !!b.custom) return a.custom ? -1 : 1;
@@ -651,8 +662,8 @@
     });
   }
 
-  function encounter(code) {
-    var row = pick(ENCOUNTER, code);
+  function encounter(code, src) {
+    var row = pick(src && src !== "gm" ? ENCOUNTERS[src] || [] : ENCOUNTER_GM, code);
     return row ? row[2] : null;
   }
 
@@ -703,7 +714,10 @@
     COMMON_RULES: COMMON_RULES,
     ANIMAL_RULES: ANIMAL_RULES,
     LIST: LIST,
-    ENCOUNTER: ENCOUNTER,
+    ENCOUNTER: ENCOUNTER_GM,
+    ENCOUNTERS: ENCOUNTERS,
+    SOURCES: SOURCES,
+    sourceName: function (k) { return SOURCES[k] || k; },
     DEMON: DEMON,
     get: get,
     all: all,

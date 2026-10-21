@@ -12,7 +12,7 @@
 
 var B = window.FLBestiary;
 
-app.bestiary = { q: "", open: null, from: null, entryId: null, pick: null, roll: null, rolling: false, qty: 1, group: true, str: null, enc: null, confirmDel: false };
+app.bestiary = { q: "", src: "", open: null, from: null, entryId: null, pick: null, roll: null, rolling: false, qty: 1, group: true, str: null, enc: null, confirmDel: false };
 app.bestiaryCustom = app.bestiaryCustom || [];
 
 var KIND_LABEL = { monstro: "Monstro", comum: "Combatente", animal: "Animal" };
@@ -29,8 +29,11 @@ function renderBestiary() {
   var html = '<header><p class="eyebrow">Painel do Mestre</p><h1 class="title">Bestiário</h1></header>' +
     '<label class="sr-only" for="f-best-q">Buscar</label>' +
     '<input id="f-best-q" class="field" type="search" data-best="q" placeholder="Buscar criatura" value="' + esc(st.q) + '">' +
+    '<nav class="shield-tabs" aria-label="Livro">' + [["", "Todos"], ["gm", "Guia do Mestre"], ["bob", "Book of Beasts"]].map(function (t) {
+      return '<button data-action="bestSrc" data-src="' + t[0] + '" aria-pressed="' + (st.src === t[0]) + '">' + t[1] + "</button>";
+    }).join("") + "</nav>" +
     '<div class="row" style="gap:8px;flex-wrap:wrap">' +
-      '<button class="btn-ghost slim" data-action="bestEncounter">' + ICON.die + "Sortear criatura (D66)</button>" +
+      '<button class="btn-ghost slim" data-action="bestEncounter">' + ICON.die + "Sortear criatura (D66" + (st.src === "bob" ? ", Book of Beasts" : st.src === "gm" ? ", Guia" : "") + ")</button>" +
       '<button class="btn-ghost slim" data-action="bestDemon">' + ICON.spark + "Gerar demônio</button>" +
     "</div>";
 
@@ -50,7 +53,7 @@ function renderBestiary() {
       '<p class="eyebrow" style="margin:10px 0 4px">Animais</p><ul class="shield-notes">' +
       B.ANIMAL_RULES.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul></details>";
 
-  var found = B.search(st.q);
+  var found = B.search(st.q, st.src);
   if (!found.length) return html + '<p class="muted" style="margin:0">Nenhuma criatura com esse nome.</p>';
 
   [["monstro", "Monstros"], ["comum", "Mortos-vivos e insetoides"], ["animal", "Animais"]].forEach(function (k) {
@@ -93,7 +96,7 @@ function renderMonster(m) {
   var html = '<div class="gm-back"><button class="link-btn inline" data-action="bestBack">' + ICON.back +
     "<span>" + (st.from === "combat" ? "Iniciativa" : "Bestiário") + "</span></button></div>";
 
-  html += '<header><p class="eyebrow">' + KIND_LABEL[m.kind] + (m.group ? " · " + esc(m.group) : "") + " · Guia do Mestre p. " + m.page + "</p>" +
+  html += '<header><p class="eyebrow">' + KIND_LABEL[m.kind] + (m.group ? " · " + esc(m.group) : "") + " · " + B.sourceName(m.src) + " p. " + m.page + "</p>" +
     '<h1 class="title">' + esc(m.name) + "</h1></header>";
 
   var stats = [["Força", m.str], ["Agilidade", m.agi]];
@@ -338,9 +341,10 @@ Object.assign(actions, {
     window.scrollTo(0, 0);
   },
   bestEncounter: function () {
-    var code = rollD66();
-    app.bestiary.enc = { code: code, id: B.encounter(code) };
+    var code = rollD66(), src = app.bestiary.src === "bob" ? "bob" : "gm";
+    app.bestiary.enc = { code: code, id: B.encounter(code, src) };
   },
+  bestSrc: function (el) { app.bestiary.src = el.dataset.src; app.bestiary.enc = null; },
   bestEncClear: function () { app.bestiary.enc = null; },
   bestDemon: function () {
     var m = B.demon();

@@ -287,7 +287,7 @@ function loadSheet() {
       app.sheet = migrate(data.sheet);
       if (data.combat && Array.isArray(data.combat.entries)) app.combat = data.combat;
       if (data.journey && typeof data.journey.day === "number") { app.journey = data.journey; app.journey.review = !!app.journey.review; }
-      if (Array.isArray(data.bestiary)) { app.bestiaryCustom = data.bestiary; if (window.FLBestiary) window.FLBestiary.setCustom(data.bestiary); }
+      if (Array.isArray(data.bestiary)) { app.bestiaryCustom = data.bestiary.map(function (m) { m.src = m.src || "gm"; return m; }); if (window.FLBestiary) window.FLBestiary.setCustom(data.bestiary); }
     } else {
       app.sheet = migrate(data);
     }
