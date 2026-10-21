@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.11.0"; // atualizado por tools/release.py
+var APP_VERSION = "0.11.1"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
