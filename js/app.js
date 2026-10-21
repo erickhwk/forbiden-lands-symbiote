@@ -17,6 +17,8 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
+var APP_VERSION = "0.8.2"; // atualizado por tools/release.py
+
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
 /* ------------------------------------------------------------------ */
@@ -1330,6 +1332,7 @@ function renderBackground() {
     text("relationships", "Relacionamentos", "Uma linha por personagem da mesa.", 4) +
     text("talents", "Anotações", "", 6) +
     renderBackup() +
+    '<p class="small muted version-line">Ficha Forbidden Lands · versão ' + APP_VERSION + "</p>" +
   "</section>";
 }
 

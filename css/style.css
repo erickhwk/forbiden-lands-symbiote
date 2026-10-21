@@ -646,3 +646,4 @@ details.spell summary .item-name { margin-right: 2px; }
 details.spell[open] summary .item-name { color: var(--accent); }
 .spell-body { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; }
 .spell-group details.late .spell-row:first-child { border-top: none; }
+.version-line { text-align: center; margin: 8px 0 0; }

@@ -1,0 +1,40 @@
+{
+  "manifestVersion": 1,
+  "name": "Ficha FL (online)",
+  "summary": "Ficha de personagem de Forbidden Lands. Carrega a versão mais recente da internet: atualiza sozinha, sem reinstalar.",
+  "entryPoint": "https://erickhwk.github.io/forbiden-lands-symbiote/index.html",
+  "descriptionFilePath": "/README.md",
+  "version": "0.8.2",
+  "license": "MIT",
+  "api": {
+    "version": "0.1",
+    "initTimeout": 10,
+    "subscriptions": {
+      "symbiote": {
+        "onStateChangeEvent": "onStateChangeEvent"
+      },
+      "dice": {
+        "onRollResults": "handleRollResult"
+      },
+      "sync": {
+        "onSyncMessage": "handleSyncMessage",
+        "onClientEvent": "handleSyncClientEvent"
+      }
+    },
+    "interop": {
+      "id": "fd1e461e-0e28-49d0-9fca-1cf2df09e816"
+    }
+  },
+  "controls": {
+    "reload": true
+  },
+  "icons": {
+    "64x64": "/icon.png"
+  },
+  "environment": {
+    "webViewBackgroundColor": "#15120E",
+    "capabilities": [
+      "runInBackground"
+    ]
+  }
+}
