@@ -238,8 +238,8 @@
   },
   {
     id: "mumia", name: "Múmia", kind: "monstro", src: "bob", page: 63,
-    str: 24, agi: 3, wits: 2, armor: 8, armorNote: "só a que veste: armadura de placas (elmo grande 4)", move: 1,
-    skills: [["Potência", 6]], gear: "Montante, armadura de placas, elmo grande, um achado Valioso",
+    str: 24, agi: 3, wits: 2, armor: 8, armorNote: "só a que veste: armadura de placas (grande elmo 4)", move: 1, moveNote: "o livro não dá; aqui está 1",
+    skills: [["Potência", 6]], gear: "Montante, armadura de placas, grande elmo, um achado Valioso",
     traits: [
       { name: "Corpo oco", text: "Arma física causa metade do dano; perfurante não causa nenhum. Arma mágica fere normal; fogo causa o dobro." },
       { name: "Fome de entranhas", text: "Sempre ataca quem tem mais Força e o segue se ele recuar. Se ele morrer, gasta uma rodada comendo o coração dele." },
@@ -297,7 +297,7 @@
       { name: "Garras", dice: 6, dmg: 1, type: "cort", range: "maos", fx: "Se causar dano, infecção grave Virulência 6." },
       { name: "Flauta", dice: 7, fear: true, range: "perto", all: true },
       { name: "Aves carniceiras", dice: 8, dmg: 1, type: "cort", range: "maos", fx: "Num alvo escolhido." },
-      { name: "Imundície", dice: 0, poison: "letal, Potência 6", range: "perto", all: true, dodge: false, fx: "Toda comida em Perto fica estragada (mesma Potência se comida). O livro não diz o tipo do veneno; aqui está letal." },
+      { name: "Imundície", dice: 0, poison: "Potência 6 (o livro não diz o tipo)", range: "perto", all: true, dodge: false, fx: "Toda comida em Perto fica estragada (mesma Potência se comida)." },
       { name: "Redemoinho de ratos", dice: 8, dmg: 1, type: "cort", range: "maos", fx: "Num alvo escolhido." },
       { name: "Praga", dice: 0, range: "perto", all: true, dodge: false, fx: "Doença demoníaca Virulência 7. Quem perder a rolagem resistida ganha furúnculos que estouram na mesma rodada: cada um tira 1 de Força. Magia de cura ou Cura da Natureza evita os furúnculos." }
     ]
