@@ -32,7 +32,8 @@
     "Imune a medo e a magias que causam dano em Astúcia ou Empatia. Não pode ser Manipulado.",
     "Os ataques podem ser esquivados, mas não bloqueados, salvo quando o ataque diz que pode. O monstro pode esquivar, e bloquear se tiver arma ou escudo.",
     "Não pode ser Agarrado nem Fintado. Com quatro patas ou mais, não pode ser Derrubado.",
-    "Derrubar um bípede ou Desarmar: se a Força do monstro passa do dobro da sua, precisa de um sucesso a mais; do triplo, dois a mais, e assim por diante.",
+    "Derrubar um bípede: se a Força do monstro passa do dobro da sua, precisa de três sucessos; do triplo, quatro, e assim por diante.",
+    "Desarmar: se a Força do monstro passa do dobro da sua, precisa de dois sucessos; do triplo, três, e assim por diante.",
     "Combinações ocultas não se usam contra monstros.",
     "Perícia de monstro: role os Dados de Perícia com os Dados Base do atributo; se ele não tem o atributo, só os de Perícia.",
     "Para deixar um monstro mais duro, ele pode agir duas ou três vezes por rodada (compre essas cartas de iniciativa)."
@@ -66,7 +67,7 @@
         { name: "Grito profano", dice: 8, fear: true, range: "perto", all: true },
         { name: "Mão do morto", dice: 8, dmg: 2, type: "esmag", range: "perto", fx: "Ergue o alvo pelo ar e o atira para Curta." },
         { name: "Arco da lâmina", dice: 8, dmg: 2, type: "cort", range: "maos", all: true, block: true, fx: "Dano da arma." },
-        { name: "Olhar gelado", dice: 0, poison: "paralisante, Potência 8", range: "perto", fx: "Um alvo." },
+        { name: "Olhar gelado", dice: 0, poison: "paralisante, Potência 8", range: "maos", fx: "Um alvo." },
         { name: "Portão dos mortos", dice: 12, fear: true, range: "perto", fx: "Um alvo escolhido." }
       ]
     },
@@ -145,7 +146,7 @@
         { name: "Golpe esmagador", dice: 12, dmg: 2, type: "esmag", range: "maos", fx: "Se acertar, o alvo cai." },
         { name: "Rugido", dice: 6, fear: true, range: "perto", all: true },
         { name: "Pisotear", dice: 10, dmg: 1, type: "esmag", range: "perto", fx: "Contra dois alvos; quem for atingido cai." },
-        { name: "Varrida", dice: 9, dmg: 2, type: "esmag", range: "perto", all: true, fx: "Quem for atingido cai." },
+        { name: "Varrida", dice: 9, dmg: 2, range: "perto", all: true, fx: "Quem for atingido cai." },
         { name: "Arremesso", dice: 11, dmg: 1, type: "esmag", range: "perto", fx: "Se acertar, o alvo voa para Curta e cai." },
         { name: "Fúria", dice: 10, dmg: 1, type: "esmag", range: "perto", all: true, fx: "Quem for atingido cai." }
       ]
@@ -189,7 +190,7 @@
         { name: "Brotam de novo", text: "Cabeça a 0 cai, e nascem duas na rodada seguinte, a menos que o toco seja cauterizado com fogo (tocha e Movimentação, ação lenta)." }
       ],
       attacks: [
-        { name: "Mordida", dice: 6, dmg: 2, type: "cort", range: "perto", fx: "No alvo mais próximo." },
+        { name: "Mordida", dice: 6, dmg: 2, type: "cort", range: "maos", fx: "No alvo mais próximo." },
         { name: "Grito", dice: 5, fear: true, range: "perto", all: true },
         { name: "Garras", dice: 7, dmg: 1, type: "cort", range: "maos" },
         { name: "Cauda", dice: 6, dmg: 2, type: "perf", range: "perto" },
@@ -409,18 +410,18 @@
     animal("burro", "Burro", 3, 3, 2, [["Movimentação", 2], ["Resiliência", 2], ["Patrulha", 3]], "Casco", 1, "esmag"),
     animal("cao-guerra", "Cão de guerra", 5, 3, 2, [["Luta", 3], ["Movimentação", 2], ["Patrulha", 3]], "Mordida", 1, "cort"),
     animal("crocodilo", "Crocodilo", 4, 2, 1, [["Luta", 3], ["Patrulha", 3]], "Mordida", 2, "cort"),
-    animal("cao", "Cão", 3, 3, 2, [["Luta", 1], ["Patrulha", 5]], "Mordida", 1, "cort"),
-    animal("gato", "Gato", 1, 5, 1, [["Movimentação", 4], ["Patrulha", 5]], "Garras", 1, "cort"),
-    animal("ratos", "Ratos (bando)", 4, 3, 1, [["Movimentação", 3], ["Patrulha", 4]], "Mordida", 1, "cort", { swarm: true }),
-    animal("morcegos", "Morcegos (bando)", 5, 3, 2, [["Movimentação", 3], ["Patrulha", 5]], "Mordida", 1, "cort", { swarm: true }),
-    animal("corvo", "Corvo", 1, 3, 2, [["Movimentação", 3], ["Patrulha", 4]], "Bico", 1, "cort"),
-    animal("aguia", "Águia", 3, 5, 3, [["Luta", 3], ["Movimentação", 3], ["Patrulha", 5]], "Garras", 1, "cort"),
-    animal("cobra", "Cobra", 1, 3, 1, [["Luta", 3], ["Patrulha", 4]], "Mordida", 0, "", { fx: "Se acertar, veneno letal Potência 4." }),
-    animal("escorpiao-aranha", "Escorpião ou aranha", 1, 3, 1, [["Luta", 2], ["Movimentação", 3], ["Patrulha", 3]], "Ferrão ou quelíceras", 0, "", { fx: "Se acertar, veneno paralisante Potência 6." })
+    animal("cao", "Cão", 3, 3, 2, [["Luta", 1], ["Patrulha", 5]], "Mordida", 1, "cort", { page: 127 }),
+    animal("gato", "Gato", 1, 5, 1, [["Movimentação", 4], ["Patrulha", 5]], "Garras", 1, "cort", { page: 127 }),
+    animal("ratos", "Ratos (bando)", 4, 3, 1, [["Movimentação", 3], ["Patrulha", 4]], "Mordida", 1, "cort", { swarm: true, page: 127 }),
+    animal("morcegos", "Morcegos (bando)", 5, 3, 2, [["Movimentação", 3], ["Patrulha", 5]], "Mordida", 1, "cort", { swarm: true, page: 127 }),
+    animal("corvo", "Corvo", 1, 3, 2, [["Movimentação", 3], ["Patrulha", 4]], "Bico", 1, "cort", { page: 127 }),
+    animal("aguia", "Águia", 3, 5, 3, [["Luta", 3], ["Movimentação", 3], ["Patrulha", 5]], "Garras", 1, "cort", { page: 127 }),
+    animal("cobra", "Cobra", 1, 3, 1, [["Luta", 3], ["Patrulha", 4]], "Mordida", 0, "", { fx: "Se acertar, veneno letal Potência 4.", page: 127 }),
+    animal("escorpiao-aranha", "Escorpião ou aranha", 1, 3, 1, [["Luta", 2], ["Movimentação", 3], ["Patrulha", 3]], "Ferrão ou quelíceras", 0, "", { fx: "Se acertar, veneno paralisante Potência 6.", page: 127 })
   ];
 
   function animal(id, name, str, agi, move, skills, wname, dmg, type, extra) {
-    var m = { id: id, name: name, kind: "animal", page: 126, str: str, agi: agi, armor: 0, move: move, skills: skills,
+    var m = { id: id, name: name, kind: "animal", page: extra && extra.page || 126, str: str, agi: agi, armor: 0, move: move, skills: skills,
       weapon: { name: wname, dmg: dmg, type: type, fx: extra && extra.fx } };
     if (extra && extra.swarm) m.traits = [{ name: "Bando", text: "Conta como uma criatura só; cada ataque contra o bando tira no máximo 1 de Força." }];
     return m;
