@@ -103,3 +103,14 @@ test("demônio gerado entra na busca e no get", () => {
   B.setCustom([]);
   assert.strictEqual(B.get(d.id), null);
 });
+
+test("Book of Beasts: tabela D66 cobre 11 a 66 e as fichas são válidas", () => {
+  const bob = B.LIST.filter((m) => m.src === "bob");
+  assert.ok(bob.length >= 28);
+  for (let t = 1; t <= 6; t++) for (let u = 1; u <= 6; u++) assert.ok(B.get(B.encounter(t * 10 + u, "bob")), String(t * 10 + u));
+  bob.forEach((m) => {
+    assert.ok(m.page > 0 && m.str > 0, m.id);
+    B.attacks(m).forEach((a) => assert.ok(a.dice === "str" || a.dice >= 0, m.id + " " + a.name));
+  });
+  assert.deepStrictEqual(B.search("", "bob").every((m) => m.src === "bob"), true);
+});

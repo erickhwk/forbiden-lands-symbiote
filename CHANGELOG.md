@@ -5,6 +5,7 @@ A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote a
 ## 0.14.0
 
 - Bestiário no painel do Mestre: fichas limpas de todos os monstros do Guia do Mestre, mais mortos-vivos, insetoides e animais. Cada ficha tem atributos, perícias, traços e a tabela de ataques; sorteie o ataque e role os Dados Base na sua bandeja, com o dano já calculado. Mostrar no chat é opcional.
+- Os 28 monstros do Book of Beasts também estão no Bestiário (com as variantes, como as três idades da Aranha Gigante). Um filtro escolhe o livro, e o sorteio D66 usa a tabela do livro escolhido.
 - Gerador de demônio (forma, habilidades, ataques e fraqueza), que fica guardado no Bestiário, e sorteio de criatura pela tabela D66.
 - Iniciativa com Força: monstros entram pelo Bestiário já com a Força, e cada cópia de um grupo tem a sua barra para descontar o dano. Avisa quando chega na metade e marca Acabado. PNJs comuns ganharam um campo de Força opcional.
 
