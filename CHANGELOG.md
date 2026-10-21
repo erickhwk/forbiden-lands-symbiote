@@ -2,6 +2,11 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.15.0
+
+- Quantidade nos itens: o − e o + ao lado de "×1" mudam quantos você carrega, e a carga conta cada um. Adicionar do catálogo um item que você já tem só aumenta a quantidade.
+- Cadeado no cabeçalho da ficha: trancada, a montagem não muda (nome, ascendência, profissão, atributos máximos, perícias, talentos, itens, magias, história, XP e Reputação). O que muda em jogo continua livre: dano, Força de Vontade, condições, consumíveis, quantidade, moedas e rolagens.
+
 ## 0.14.1
 
 - Óleo em Consumíveis sem o texto de regra embaixo do nome, alinhado como os outros.

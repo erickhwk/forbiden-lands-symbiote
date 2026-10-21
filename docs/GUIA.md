@@ -19,6 +19,7 @@ Nas imagens estão Ylva Corvo-de-Cinza, uma caçadora humana, e Tyrgar Pedra-Fun
   - [Talentos](#talentos)
   - [Magia](#magia)
   - [Reputação, XP e Evoluir](#reputação-xp-e-evoluir)
+  - [Trancar a ficha](#trancar-a-ficha)
   - [Configurações e cópia de segurança](#configurações-e-cópia-de-segurança)
 - **Para o Mestre**
   - [A mesa](#a-mesa)
@@ -216,6 +217,7 @@ Na aba **Equipamento**:
 - Armaduras e elmos têm a opção "vestido".
 - Item com bônus 0 aparece como quebrado.
 - Item danificado pode ser reparado com um clique.
+- **×1** com − e + é a quantidade: três adagas pesam como três. Adicionar de novo um item que você já tem só aumenta a quantidade.
 
 <br clear="right">
 
@@ -310,6 +312,10 @@ Toque no custo para comprar. **Desfazer a última** volta atrás, e **Concluir**
 Pelo livro, gasta-se XP descansando ou dormindo, e atributos não evoluem com XP.
 
 <br clear="right">
+
+## Trancar a ficha
+
+O **cadeado** no cabeçalho, ao lado da engrenagem, tranca a ficha para nada mudar sem querer. Trancada, a montagem fica parada: nome, ascendência, profissão, atributos máximos, perícias, talentos, itens, magias, história, XP e Reputação. O que muda durante o jogo continua livre: dano nos atributos, Força de Vontade, condições, consumíveis, quantidade de itens, moedas e todas as rolagens. Clique de novo para destrancar.
 
 ## Configurações e cópia de segurança
 

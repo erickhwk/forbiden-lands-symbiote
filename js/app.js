@@ -138,6 +138,7 @@ function migrate(saved) {
   base.xp = clamp(saved.xp | 0, 0, Math.max(base.xpTotal, saved.xp | 0));
   if (base.xp > base.xpTotal) base.xpTotal = base.xp;
   base.prideLost = !!saved.prideLost;
+  base.locked = !!saved.locked;
   base.kin = catalogId(C.KINS, saved.kin);
   base.profession = catalogId(C.PROFESSIONS, saved.profession);
   if (Array.isArray(saved.talentList)) {
@@ -163,7 +164,7 @@ function migrate(saved) {
     base.gear = saved.gear.map(function (g) {
       var bonus = clamp(g.bonus | 0, 0, 10);
       var base = g.base == null ? bonus : clamp(g.base | 0, bonus, 10);
-      var out = { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base, info: String(g.info || "") };
+      var out = { id: String(g.id || uid()), name: String(g.name || ""), bonus: bonus, base: base, info: String(g.info || ""), qty: clamp(g.qty | 0 || 1, 1, 999) };
       // Fichas antigas não marcavam itens sem bônus: usa o catálogo, ou bônus 0 sem histórico.
       var cat = C.gearByName && C.gearByName(out.name);
       var isArmor = g.kind === "armor" || (cat && cat.kind === "armor");
@@ -374,6 +375,8 @@ var ICON = {
   cards: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 6V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-5"></path></svg>',
   plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>',
   next: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>',
+  lock: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>',
+  unlock: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 7.5-2"></path></svg>',
   claw: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 3c3 4 3.5 10 1.5 18"></path><path d="M11.5 3c2.8 4.5 3 10.5 1 18"></path><path d="M17 3c2.6 5 2.6 11 .6 18"></path></svg>',
   tray: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path><circle cx="12" cy="12" r="3"></circle></svg>'
 };
@@ -401,6 +404,29 @@ function render() {
     : app.mode === "session" && app.canGM ? renderSession()
     : renderSheet();
   root.innerHTML = '<div class="app">' + (app.view === "roll" || app.view === "cast" || app.view === "settings" ? "" : renderModeBar()) + body + "</div>";
+  if (app.sheet.locked) applyLock(root);
+}
+
+/*
+ * Ficha trancada: trava só a montagem (nome, atributos máximos, perícias,
+ * talentos, itens, magias, história, XP). O que muda em jogo segue livre:
+ * dano, Força de Vontade, condições, consumíveis, quantidade, moedas e rolagens.
+ */
+var LOCKED_ACTIONS = ["attrMax", "setAge", "skill", "talentAdd", "talentRank", "talentRemove", "gearAdd", "gearRemove", "gearGiveBonus",
+  "gearBonus", "evolveStart", "evoSkill", "evoTalent", "xp", "rep", "newPride", "pathAdd", "clearAsk", "clearConfirm", "backupOpenImport", "backupConfirm"];
+var LOCKED_BINDS = ["name", "gear.name", "talent.name", "talents", "face", "body", "clothes", "pride", "darkSecret", "relationships"];
+
+function applyLock(root) {
+  if (app.mode !== "sheet" && app.view !== "settings") return;
+  root.querySelector(".app").classList.add("locked");
+  LOCKED_ACTIONS.forEach(function (a) {
+    root.querySelectorAll('[data-action="' + a + '"]').forEach(function (el) { el.disabled = true; el.classList.add("lock-off"); });
+  });
+  LOCKED_BINDS.forEach(function (b) {
+    root.querySelectorAll('[data-bind="' + b + '"]').forEach(function (el) { el.readOnly = true; });
+  });
+  root.querySelectorAll("[data-select], [data-weight], #f-add-gear, #f-add-talent, #f-add-path").forEach(function (el) { el.disabled = true; });
+  root.querySelectorAll(".adder").forEach(function (el) { if (el.querySelector("#f-add-gear, #f-add-talent, #f-add-path")) el.hidden = true; });
 }
 
 function initials(name) {
@@ -445,7 +471,10 @@ function renderHeader() {
         selectHtml("profession", "Profissão", C.PROFESSIONS, s.profession) +
       "</div>" +
     "</div>" +
-    '<button class="btn-icon sm gear" data-action="settingsOpen" aria-label="Configurações" title="Configurações">' + ICON.gear + "</button>" +
+    '<div class="who-tools">' +
+    '<button class="btn-icon sm lock' + (s.locked ? " on" : "") + '" data-action="lockToggle" aria-pressed="' + !!s.locked + '" aria-label="' + (s.locked ? "Destrancar a ficha" : "Trancar a ficha") + '" title="' + (s.locked ? "Ficha trancada (clique para destrancar)" : "Trancar a ficha") + '">' + (s.locked ? ICON.lock : ICON.unlock) + "</button>" +
+    '<button class="btn-icon sm" data-action="settingsOpen" aria-label="Configurações" title="Configurações">' + ICON.gear + "</button>" +
+    "</div>" +
     (app.ts
       ? '<span class="pill"><span class="dot"></span>Na mesa</span>'
       : '<span class="pill offline" title="Aberto fora do TaleSpire"><span class="dot"></span>Navegador</span>') +
@@ -1001,6 +1030,11 @@ function renderGear() {
     else if (broken) sub = '<span class="badge">Quebrado</span> não dá dados até ser reparado';
     else if (damaged) sub = "Danificado · bônus " + g.bonus + " de " + g.base + (g.info ? " · " + esc(g.info) : "");
     else sub = g.info ? esc(g.info) : "Bônus de Equipamento";
+    var q = g.qty || 1;
+    sub = '<span class="qty-ctl" role="group" aria-label="Quantidade">' +
+      '<button class="qty-b" data-action="gearQty" data-id="' + esc(g.id) + '" data-delta="-1" aria-label="Um a menos"' + (q <= 1 ? " disabled" : "") + ">−</button>" +
+      '<span class="qty-n">×' + q + "</span>" +
+      '<button class="qty-b" data-action="gearQty" data-id="' + esc(g.id) + '" data-delta="1" aria-label="Um a mais">+</button></span> ' + sub;
     if (armor) {
       sub += ' · <button class="link-btn inline" data-action="gearWear" data-id="' + esc(g.id) + '" aria-pressed="' + !!g.worn + '">' +
         (g.worn ? "Vestida" : "Guardada (vestir)") + "</button>";
@@ -1017,7 +1051,7 @@ function renderGear() {
       '<span class="level" aria-label="Bônus ' + g.bonus + '">' + g.bonus + "</span>" +
       '<button class="btn-step" data-action="gearBonus" data-id="' + esc(g.id) + '" data-delta="1" aria-label="Aumentar bônus">+</button>';
 
-    return '<div class="list-row' + (broken ? " broken" : "") + '">' +
+    return '<div class="list-row gear-item' + (broken ? " broken" : "") + '">' +
       '<div class="grow">' +
         '<input class="plain-input" data-bind="gear.name" data-id="' + esc(g.id) + '" aria-label="Nome do item" placeholder="Nome do item" value="' + esc(g.name) + '">' +
         '<div class="small muted">' + sub + "</div>" +
@@ -1813,6 +1847,19 @@ var actions = {
     save();
   },
 
+  gearQty: function (el) {
+    var g = gearById(el.dataset.id);
+    if (!g) return;
+    g.qty = clamp((g.qty || 1) + (+el.dataset.delta), 1, 999);
+    save();
+  },
+
+  lockToggle: function () {
+    app.sheet.locked = !app.sheet.locked;
+    save();
+    toast(app.sheet.locked ? "Ficha trancada: a montagem não muda até você destrancar. O jogo segue normal." : "Ficha destrancada.");
+  },
+
   gearAdd: function () {
     var sel = document.getElementById("f-add-gear");
     var value = sel ? sel.value : "";
@@ -1832,7 +1879,14 @@ var actions = {
       if (oil.lamps.indexOf(it.name) !== -1 && !app.sheet.resources.oleo) {
         toast(it.name + " precisa de óleo. Em Consumíveis, use o + do Óleo para cada unidade.");
       }
-      var item = { id: uid(), name: it.name, weight: it.weight || "normal", info: it.info || "", kind: it.kind || "" };
+      var same = it.kind !== "armor" && app.sheet.gear.filter(function (g) { return g.name === it.name; })[0];
+      if (same) {
+        same.qty = (same.qty || 1) + 1;
+        toast(it.name + ": agora ×" + same.qty + ".");
+        save();
+        return;
+      }
+      var item = { id: uid(), name: it.name, weight: it.weight || "normal", info: it.info || "", kind: it.kind || "", qty: 1 };
       if (it.kind === "armor") {
         item.bonus = item.base = it.armor; item.nb = false; item.part = it.part;
         // Veste se ainda não há outra peça vestida no mesmo lugar.
