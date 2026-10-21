@@ -116,6 +116,8 @@ function handleSyncMessage(ev) {
   if (msg.t === "who") { sayHello(); return; }
   if (msg.t === "xp") { receiveXp(msg); return; }
   if (msg.t === "rq") { receiveRequest(msg); return; }
+  if (msg.t === "jn") { receiveJourney(msg); return; }
+  if (msg.t === "cd") { receiveCondition(msg); return; }
   if (msg.t === "st") { app.table.combat = msg; app.table.choose = null; render(); return; }
   if (msg.t === "ch") { app.table.choose = msg; render(); return; }
   if (msg.t === "end") { app.table.combat = null; app.table.choose = null; render(); return; }
@@ -125,7 +127,7 @@ function handleSyncMessage(ev) {
 function handleSyncClientEvent(ev) {
   if (!ev || !ev.kind) return;
   if (ev.kind === "clientConnected") {
-    if (app.canGM) { syncSend({ t: "who" }); if (app.combat && app.combat.phase !== "setup") broadcastState(); }
+    if (app.canGM) { syncSend({ t: "who" }); if (app.combat && app.combat.phase !== "setup") broadcastState(); broadcastJourney(); }
     else sayHello();
   }
   if (ev.kind === "clientDisconnected" && app.canGM && ev.payload) {

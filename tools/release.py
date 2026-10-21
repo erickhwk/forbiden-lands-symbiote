@@ -7,7 +7,9 @@ Prepara uma versão: python3 tools/release.py 0.9.0 [pasta-de-saída]
   não ficar preso numa versão antiga em cache (GitHub Pages)
 - gera dois zips na pasta de saída (padrão: dist/):
     ficha-forbidden-lands-<v>.zip         Symbiote completo (local)
-    ficha-forbidden-lands-online-<v>.zip  só manifest + ícone, carrega do GitHub Pages
+    ficha-forbidden-lands-online-<v>.zip  só manifest + ícone, carrega do GitHub Pages (ramo publicado)
+    ficha-forbidden-lands-teste.zip       "Ficha FL (teste)": carrega o ramo main, para o Mestre
+                                          testar antes de levar para o publicado
 """
 import json, os, re, sys, zipfile
 
@@ -49,5 +51,19 @@ def zipdir(name, entries):
 
 zipdir("ficha-forbidden-lands-%s.zip" % v,
        [(x, x) for x in ["manifest.json", "index.html", "icon.png", "README.md", "LICENSE", "css", "js", "fonts"]])
+test = json.load(open(os.path.join(ROOT, "online/manifest.json"), encoding="utf-8"))
+test["name"] = "Ficha FL (teste)"
+test["summary"] = "Versão em teste da Ficha Forbidden Lands (ramo main). Só para o Mestre conferir antes de publicar."
+test["entryPoint"] = "https://raw.githack.com/erickhwk/forbiden-lands-symbiote/main/index.html"
+test_path = os.path.join(out, "manifest-teste.json")
+with open(test_path, "w", encoding="utf-8") as f: f.write(json.dumps(test, ensure_ascii=False, indent=2) + "\n")
+path = os.path.join(out, "ficha-forbidden-lands-teste.zip")
+with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+    z.write(test_path, "manifest.json")
+    z.write(os.path.join(ROOT, "icon.png"), "icon.png")
+    z.write(os.path.join(ROOT, "online/README.md"), "README.md")
+os.remove(test_path)
+print(path)
+
 zipdir("ficha-forbidden-lands-online-%s.zip" % v,
        [("online/manifest.json", "manifest.json"), ("icon.png", "icon.png"), ("online/README.md", "README.md"), ("LICENSE", "LICENSE")])

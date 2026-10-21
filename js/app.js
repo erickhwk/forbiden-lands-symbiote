@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.8.2"; // atualizado por tools/release.py
+var APP_VERSION = "0.9.0"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -260,6 +260,7 @@ function loadSheet() {
     if (data && data.sheet) {
       app.sheet = migrate(data.sheet);
       if (data.combat && Array.isArray(data.combat.entries)) app.combat = data.combat;
+      if (data.journey && typeof data.journey.day === "number") { app.journey = data.journey; app.journey.review = !!app.journey.review; }
     } else {
       app.sheet = migrate(data);
     }
@@ -272,7 +273,7 @@ var saveTimer = null;
 function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(function () {
-    var raw = JSON.stringify({ v: 2, sheet: app.sheet, combat: app.combat || null });
+    var raw = JSON.stringify({ v: 2, sheet: app.sheet, combat: app.combat || null, journey: app.journey || null });
     if (app.ts) {
       TS.localStorage.campaign.setBlob(raw).catch(function (err) {
         console.error("Falha ao salvar", err);
@@ -335,6 +336,7 @@ var ICON = {
   star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"></path></svg>',
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
+  map: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3.5 6v14L9 18l6 2 5.5-2V4L15 6z"></path><path d="M9 4v14"></path><path d="M15 6v14"></path></svg>',
   users: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"></path><path d="M18.5 14.8c1.6.8 2.6 2.5 3 5.2"></path></svg>',
   chevron: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>',
   spark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"></path></svg>',
@@ -359,6 +361,7 @@ function render() {
     : app.view === "cast" && app.cast ? renderCast()
     : app.mode === "home" && app.canGM ? renderHome()
     : app.mode === "rolls" && app.canGM ? renderRequests()
+    : app.mode === "journey" && app.canGM ? renderJourney()
     : app.mode === "group" && app.canGM ? renderGroup()
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
@@ -378,6 +381,7 @@ function renderSheet() {
     renderHeader(),
     renderPlayerCombat(),
     renderPlayerRequests(),
+    renderPlayerJourney(),
     renderBrokenBanner(),
     renderAttrs(),
     renderArmor(),

@@ -673,3 +673,19 @@ details.spell[open] summary .item-name { color: var(--accent); }
 .rq-res.bad { color: #FF9C8C; }
 .rq-ask { display: flex; flex-direction: column; gap: 8px; }
 .rq-ask + .rq-ask { border-top: 1px solid var(--border); padding-top: 10px; }
+
+/* Jornada */
+.jy-now { display: flex; align-items: baseline; gap: 10px; }
+.jy-quarter { font-family: var(--display); font-size: 22px; font-weight: 600; color: var(--accent); }
+.jy-quarters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.jy-quarters span { text-align: center; font-size: 12px; padding: 4px 0; border-radius: 6px; background: var(--surface-2); color: var(--muted); border: 1px solid transparent; }
+.jy-quarters span.dark { background: #15120E; }
+.jy-quarters span.past { opacity: 0.45; }
+.jy-quarters span.on { color: var(--text); border-color: var(--accent); }
+.jy-row { flex-wrap: wrap; }
+.jy-row .jy-act { width: auto; max-width: 56%; margin-top: 0; }
+.jy-asks { display: flex; flex-direction: column; gap: 8px; }
+.jy-asks .btn-add { justify-content: flex-start; text-align: left; height: auto; min-height: 36px; padding: 6px 12px; }
+.chip-btn.jy-need { border-color: var(--border-strong); background: var(--surface-2); color: var(--muted); }
+.chip-btn.jy-need.on { border-color: var(--success); background: #2E2414; color: var(--success); }
+.jy-strip { display: flex; flex-direction: column; gap: 4px; }

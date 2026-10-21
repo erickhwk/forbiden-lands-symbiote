@@ -1,10 +1,10 @@
 {
   "name": "ficha-forbidden-lands",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "private": true,
   "description": "Ficha de Forbidden Lands como Symbiote do TaleSpire",
   "license": "MIT",
   "scripts": {
-    "test": "node --test test/engine.test.js test/initiative.test.js test/encumbrance.test.js test/resources.test.js test/injuries.test.js test/summary.test.js test/magic.test.js"
+    "test": "node --test test/engine.test.js test/initiative.test.js test/encumbrance.test.js test/resources.test.js test/injuries.test.js test/summary.test.js test/magic.test.js test/journey.test.js"
   }
 }

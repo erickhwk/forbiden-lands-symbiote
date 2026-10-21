@@ -65,6 +65,12 @@ function renderHome() {
     cur ? "Vez de " + label(cur) : c && c.phase !== "setup" ? "Escolhendo cartas" : "Comprar cartas",
     c && c.phase !== "setup" ? "live" : ""));
 
+  var j = app.journey;
+  cards.push(homeCard("journey", ICON.map, "Jornada",
+    j ? "Dia " + j.day + " · " + JY.QUARTERS[j.q] : "Quartos de Dia e atividades",
+    j ? JY.season(j.season).name + " · " + JY.terrain(j.terrain).name + (JY.isLight(j.season, j.q) ? "" : " · escuro") : "Comer, beber e dormir",
+    j ? "live" : ""));
+
   var rq = app.requests[0];
   cards.push(homeCard("rolls", ICON.die, "Pedir rolagem",
     rq ? requestTitle(rq) : "Peça a um ou mais jogadores",
@@ -200,15 +206,22 @@ function renderRequestCard(rq) {
 function sendRequest() {
   var f = app.rqForm;
   var ids = onlineSheets().filter(function (id) { return !f.skip[id]; });
-  if (!ids.length) return;
-  var rq = { id: uid().slice(0, 6), k: f.k, c: f.c, m: f.k === "r" ? 0 : f.m, n: f.n.trim().slice(0, 80), at: Date.now(), who: {} };
+  var rq = makeRequest(f.k, f.c, f.k === "r" ? 0 : f.m, f.n, ids);
+  if (rq) toast("Pedido enviado: " + requestTitle(rq) + ".");
+}
+
+/* Envia um pedido para as fichas `ids` e guarda na lista do Mestre. */
+function makeRequest(k, c, m, note, ids) {
+  ids = (ids || []).filter(function (id) { return app.table.sheets[id]; });
+  if (!ids.length) return null;
+  var rq = { id: uid().slice(0, 6), k: k, c: c, m: m | 0, n: String(note || "").trim().slice(0, 80), at: Date.now(), who: {} };
   ids.forEach(function (id) {
     rq.who[id] = { name: app.table.sheets[id].name, st: "wait" };
     syncSend({ t: "rq", id: rq.id, k: rq.k, c: rq.c, m: rq.m, n: rq.n }, id);
   });
   app.requests.unshift(rq);
   app.requests = app.requests.slice(0, MAX_REQUESTS);
-  toast("Pedido enviado: " + requestTitle(rq) + ".");
+  return rq;
 }
 
 /* Mestre recebe o resultado de uma ficha. */
@@ -219,6 +232,7 @@ function receiveRequestResult(fromId, msg) {
   if (msg.x) w.st = msg.x === 2 ? "empty" : "skip";
   else if (rq.k === "r") { w.st = "done"; w.v = msg.v; w.b = msg.b; w.a = msg.a; }
   else { w.st = "done"; w.s = msg.s | 0; w.p = !!msg.p; }
+  if (rq.k === "r" && typeof journeyMeal === "function") journeyMeal(fromId, rq.c, w.st === "done");
   render();
 }
 
