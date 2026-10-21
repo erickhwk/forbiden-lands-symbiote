@@ -1,0 +1,123 @@
+/*
+ * Esquemas de cores alternativos para a camada visual (theme.css).
+ * Ativados por <html data-tema="…">. Sem atributo, vale ferro e latão.
+ *
+ *   ferro      Ferro frio: estanho e aço, fosco, sem dourado
+ *   couro      Couro e osso: marrom gasto, molduras cor de osso
+ *   musgo      Musgo e bronze: verde-oliva de floresta, terroso
+ *   pergaminho Pergaminho: claro, tinta marrom e vermelho de sangue
+ */
+
+/* ---------- Ferro frio ---------- */
+html[data-tema="ferro"] {
+  --bg: #121417; --surface: #1B1E22; --surface-2: #23272C;
+  --border: #33383F; --border-strong: #4A515A;
+  --text: #E8E4DC; --muted: #9AA0A6;
+  --accent: #8E3326; --accent-bg: #2A1714;
+  --brass: #8C949C; --brass-hi: #C9CFD4; --brass-dim: rgba(140, 148, 156, 0.3);
+  --frame-rgb: 140, 148, 156;
+  --glow-rgb: 90, 110, 130; --glow-a: 0.1;
+  --rim: #7D858D;
+  --shield-hi: #1E2226; --shield-lo: #16191C;
+  --seal-hi: #2A2F35; --seal-lo: #15181B;
+  --leather-hi: #262A2F; --leather-lo: #1C1F23;
+  --on-hi: #3A1C17; --on-lo: #26120F;
+  --action-hi: #A63D2D; --action-lo: #6A2219;
+  --gem: #C9CFD4; --gem-glow: none;
+  --big-glow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  --diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M4 0L8 4L4 8L0 4Z' fill='%238C949C'/%3E%3C/svg%3E");
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .85 0 0 0 0 .88 0 0 0 0 .92 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Couro e osso ---------- */
+html[data-tema="couro"] {
+  --bg: #16110D; --surface: #211912; --surface-2: #2B2118;
+  --border: #3D3024; --border-strong: #5A4733;
+  --text: #EADFCB; --muted: #A59478;
+  --accent: #8A2F22; --accent-bg: #2C1510;
+  --brass: #BFAF8E; --brass-hi: #E3D6B8; --brass-dim: rgba(191, 175, 142, 0.28);
+  --frame-rgb: 191, 175, 142;
+  --glow-rgb: 120, 60, 30; --glow-a: 0.1;
+  --rim: #A8987A;
+  --shield-hi: #241B13; --shield-lo: #1A140E;
+  --seal-hi: #33271C; --seal-lo: #1C150F;
+  --leather-hi: #2E2318; --leather-lo: #22190F;
+  --on-hi: #42201A; --on-lo: #2B140F;
+  --action-hi: #A23A2A; --action-lo: #5E1E15;
+  --gem: #E3D6B8; --gem-glow: none;
+  --big-glow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  --diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M4 0L8 4L4 8L0 4Z' fill='%23BFAF8E'/%3E%3C/svg%3E");
+}
+
+/* ---------- Musgo e bronze ---------- */
+html[data-tema="musgo"] {
+  --bg: #101310; --surface: #181C17; --surface-2: #20261F;
+  --border: #2F382D; --border-strong: #46523F;
+  --text: #E6E6D6; --muted: #9CA38E;
+  --accent: #9A4A2A; --accent-bg: #2A1A12;
+  --brass: #8E9A6A; --brass-hi: #C7D09E; --brass-dim: rgba(142, 154, 106, 0.3);
+  --frame-rgb: 142, 154, 106;
+  --glow-rgb: 80, 110, 60; --glow-a: 0.14;
+  --rim: linear-gradient(180deg, #A9B585, #7E8A5C 45%, #4F5838);
+  --shield-hi: #1D221B; --shield-lo: #131612;
+  --seal-hi: #2B3226; --seal-lo: #141712;
+  --leather-hi: #252B22; --leather-lo: #1B1F18;
+  --on-hi: #3E2216; --on-lo: #28150D;
+  --action-hi: #B35A35; --action-lo: #6A2E18;
+  --gem: linear-gradient(135deg, #D8E0AE, #8E9A6A 55%, #4F5838); --gem-glow: none;
+  --big-glow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  --diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M4 0L8 4L4 8L0 4Z' fill='%238E9A6A'/%3E%3C/svg%3E");
+}
+
+/* ---------- Pergaminho (claro) ---------- */
+html[data-tema="pergaminho"] {
+  --bg: #E4D7BC; --surface: #EFE6D2; --surface-2: #E2D5B8;
+  --border: #C9B794; --border-strong: #A48C66;
+  --text: #2A2119; --muted: #6E5E47;
+  --accent: #8E2A1E; --accent-bg: #F0D9CC;
+  --success: #9A6B12; --bane: #B0362A; --info: #2F6F68;
+  --brass: #6B4E31; --brass-hi: #4A321C; --brass-dim: rgba(107, 78, 49, 0.3);
+  --frame-rgb: 107, 78, 49;
+  --glow-rgb: 160, 90, 40; --glow-a: 0.1;
+  --rim: #6B4E31;
+  --shield-hi: #F3EBDA; --shield-lo: #E6D8BC;
+  --seal-hi: #F5EEDF; --seal-lo: #DCCBA8;
+  --leather-hi: #F2E9D6; --leather-lo: #E3D5B7;
+  --on-hi: #EBCDBE; --on-lo: #DDB3A0;
+  --action-hi: #A8372A; --action-lo: #6E1C14; --action-fg: #FFF4EA;
+  --gem: #8E2A1E; --gem-glow: none;
+  --well: rgba(255, 255, 255, 0.45);
+  --bevel: rgba(255, 255, 255, 0.45);
+  --sheen: rgba(255, 255, 255, 0.25);
+  --big-glow: none;
+  --die-attribute: #F7F1E4; --die-attribute-fg: #2A2119;
+  --diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M4 0L8 4L4 8L0 4Z' fill='%236B4E31'/%3E%3C/svg%3E");
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .26 0 0 0 0 .16 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* No papel, as caixas que eram escuras viram tons claros de tinta. */
+html[data-tema="pergaminho"] .card.attr .attr-value { text-shadow: none; }
+html[data-tema="pergaminho"] .pip { background: #3A2C1E; border-color: #3A2C1E; box-shadow: none; }
+html[data-tema="pergaminho"] .pip.off { background: transparent; }
+html[data-tema="pergaminho"] .die-attribute, html[data-tema="pergaminho"] .tray-attribute, html[data-tema="pergaminho"] .chip-attribute { border: 1.5px solid #6B4E31; }
+html[data-tema="pergaminho"] .banner,
+html[data-tema="pergaminho"] .card.broken,
+html[data-tema="pergaminho"] .injury.lethal,
+html[data-tema="pergaminho"] .damage,
+html[data-tema="pergaminho"] .injury-new { background: #F3DCD3; }
+html[data-tema="pergaminho"] .banner-title,
+html[data-tema="pergaminho"] .damage-num .n,
+html[data-tema="pergaminho"] .warn-text,
+html[data-tema="pergaminho"] .res-note.bad,
+html[data-tema="pergaminho"] .rq-res.bad,
+html[data-tema="pergaminho"] .card.attr.broken .attr-value { color: #8E2A1E; }
+html[data-tema="pergaminho"] .lethal-line { color: #5E1A12; }
+html[data-tema="pergaminho"] .card.attr.broken::before { background: linear-gradient(180deg, #F6E2D9, #EBCDBE); }
+html[data-tema="pergaminho"] .banner.table, html[data-tema="pergaminho"] .chip-btn, html[data-tema="pergaminho"] .res-die { background: #DCE9E4; }
+html[data-tema="pergaminho"] .banner.choose, html[data-tema="pergaminho"] .evolve-bar, html[data-tema="pergaminho"] .init-row.current,
+html[data-tema="pergaminho"] .shield-result, html[data-tema="pergaminho"] .ref-table tr.row-hit td, html[data-tema="pergaminho"] .btn-pride,
+html[data-tema="pergaminho"] .evo-cost, html[data-tema="pergaminho"] .chip-btn.jy-need.on { background: #F2E3C0; }
+html[data-tema="pergaminho"] .btn-add.danger { background: #F3DCD3; }
+html[data-tema="pergaminho"] .mattr.broken { background: #F3DCD3; }
+html[data-tema="pergaminho"] .mattr.broken .mattr-num { color: #8E2A1E; }
+html[data-tema="pergaminho"] .jy-quarters span.dark { background: #D3C3A2; }
+html[data-tema="pergaminho"] .notice.warn svg { color: #9A6B12; }

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Esquemas de cores · Ficha Forbidden Lands</title>
+  <link rel="stylesheet" href="../css/fonts.css">
+  <style>
+    :root { --bg: #2B2B2B; --panel: #353535; --line: #4A4A4A; --text: #EDEDED; --muted: #A8A8A8; --pick: #F2F2F2; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans Condensed", system-ui, sans-serif; }
+    header { padding: 20px 20px 8px; max-width: 1100px; }
+    h1 { margin: 0 0 6px; font-family: "Spectral", Georgia, serif; font-weight: 600; font-size: 28px; }
+    header p { margin: 0; color: var(--muted); max-width: 70ch; line-height: 1.45; }
+    .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 20px; background: rgba(43, 43, 43, 0.95); border-bottom: 1px solid var(--line); }
+    .bar span { align-self: center; color: var(--muted); margin-right: 6px; font-size: 14px; }
+    .bar button { height: 34px; padding: 0 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+    .bar button[aria-pressed="true"] { border-color: var(--pick); }
+    .bar button:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+    .strip { display: flex; gap: 18px; padding: 18px 20px 40px; overflow-x: auto; }
+    figure { margin: 0; flex: 0 0 auto; width: 420px; }
+    figcaption { padding: 0 2px 10px; }
+    figcaption strong { display: block; font-family: "Spectral", Georgia, serif; font-size: 20px; font-weight: 600; }
+    figcaption span { color: var(--muted); font-size: 14px; line-height: 1.4; }
+    iframe { display: block; width: 420px; height: 1500px; border: 1px solid var(--line); border-radius: 4px; background: #000; }
+    @media (max-width: 480px) { figure, iframe { width: calc(100vw - 40px); } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Esquemas de cores</h1>
+    <p>A ficha de verdade, com a mesma personagem de exemplo, em cada esquema. Os botões trocam todas ao mesmo tempo, e a rolagem usa os mesmos dados em todas, para comparar com justiça. Nada aqui é salvo.</p>
+  </header>
+  <nav class="bar" aria-label="O que mostrar">
+    <span>Mostrar:</span>
+    <button data-tab="skills" aria-pressed="true">Perícias</button>
+    <button data-tab="gear" aria-pressed="false">Equipamento</button>
+    <button data-tab="talents" aria-pressed="false">Talentos</button>
+    <button data-tab="background" aria-pressed="false">Histórico</button>
+    <button data-roll="1" aria-pressed="false">Resultado de rolagem</button>
+  </nav>
+  <main class="strip">
+    <figure><figcaption><strong>Ferro e latão</strong><span>O atual. Aro dourado com brilho, ferrugem nas ações.</span></figcaption>
+      <iframe title="Ferro e latão" src="../index.html?demo=1"></iframe></figure>
+    <figure><figcaption><strong>Ferro frio</strong><span>Estanho e aço foscos, sem dourado. Ações em vermelho-sangue escuro.</span></figcaption>
+      <iframe title="Ferro frio" src="../index.html?demo=1&amp;tema=ferro"></iframe></figure>
+    <figure><figcaption><strong>Couro e osso</strong><span>Marrom gasto, molduras cor de osso, nada metálico.</span></figcaption>
+      <iframe title="Couro e osso" src="../index.html?demo=1&amp;tema=couro"></iframe></figure>
+    <figure><figcaption><strong>Musgo e bronze</strong><span>Verde-oliva de floresta e bronze velho, terroso.</span></figcaption>
+      <iframe title="Musgo e bronze" src="../index.html?demo=1&amp;tema=musgo"></iframe></figure>
+    <figure><figcaption><strong>Pergaminho</strong><span>Claro, como a ficha de papel: tinta marrom e vermelho.</span></figcaption>
+      <iframe title="Pergaminho" src="../index.html?demo=1&amp;tema=pergaminho"></iframe></figure>
+  </main>
+  <script>
+    "use strict";
+    var frames = Array.prototype.slice.call(document.querySelectorAll("iframe"));
+    var buttons = Array.prototype.slice.call(document.querySelectorAll(".bar button"));
+
+    function seeded() {
+      var v = [0.95, 0.4, 0.05, 0.6, 0.3, 0.97, 0.2, 0.7, 0.98, 0.1];
+      var i = 0;
+      return function () { return v[(i++) % v.length]; };
+    }
+
+    function each(fn) {
+      frames.forEach(function (f) {
+        var w = f.contentWindow;
+        if (w && w.app && w.app.started) { try { fn(w); } catch (e) { console.warn(e); } }
+      });
+    }
+
+    function show(btn) {
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
+      if (btn.dataset.tab) {
+        each(function (w) { w.app.view = "sheet"; w.app.roll = null; w.app.tab = btn.dataset.tab; w.render(); w.scrollTo(0, 0); });
+      } else {
+        each(function (w) {
+          w.app.view = "sheet"; w.app.roll = null; w.app.tab = "skills"; w.render();
+          w.Math.random = seeded();
+          w.document.querySelector('[data-action="openRoll"][data-skill="pontaria"]').click();
+          w.document.querySelector('[data-action="rollLocal"]').click();
+          w.scrollTo(0, 0);
+        });
+      }
+    }
+
+    buttons.forEach(function (b) { b.addEventListener("click", function () { show(b); }); });
+  </script>
+</body>
+</html>

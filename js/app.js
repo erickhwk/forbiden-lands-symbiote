@@ -43,6 +43,31 @@ var MAX_ATTR = 6;
 var MAX_WP = 10;
 var LOCAL_KEY = "ficha-forbidden-lands";
 
+/*
+ * Parâmetros do endereço, para a página de comparação de temas:
+ *   ?tema=ferro|couro|musgo|pergaminho  esquema de cores (css/temas.css)
+ *   ?demo=1                             personagem de exemplo, sem salvar nada
+ */
+var URL_PARAMS = (function () { try { return new URLSearchParams(window.location.search); } catch (e) { return null; } })();
+var DEMO = !!(URL_PARAMS && URL_PARAMS.get("demo"));
+(function () {
+  var tema = URL_PARAMS && URL_PARAMS.get("tema");
+  if (tema && /^[a-z]+$/.test(tema)) document.documentElement.setAttribute("data-tema", tema);
+})();
+
+var DEMO_SHEET = {
+  name: "Ylva Corvo-de-Cinza", kin: "humano", profession: "cacador", age: "adulto", seenVersion: "99.0.0",
+  attrs: { forca: { cur: 3, max: 3 }, agilidade: { cur: 4, max: 5 }, astucia: { cur: 3, max: 3 }, empatia: { cur: 2, max: 2 } },
+  skills: { pontaria: 3, furtividade: 2, sobrevivencia: 2, exploracao: 1, movimento: 1, cura: 1 },
+  willpower: 3, conditions: { exausto: true }, reputation: 1, xp: 4, xpTotal: 9,
+  talentList: [{ id: "adaptavel", rank: 1 }, { id: "caminho-da-flecha", rank: 2 }],
+  resources: { comida: 6, agua: 8, flechas: 10, tochas: 6 }, coins: { cobre: 30, prata: 12, ouro: 0 },
+  gear: [
+    { id: "arco", name: "Arco Longo", bonus: 2, base: 2, kind: "weapon", dmg: 1, dtype: "perfuracao", weight: "normal" },
+    { id: "couro", name: "Couro Batido", bonus: 3, base: 3, kind: "armor", part: "corpo", worn: true, weight: "normal" }
+  ]
+};
+
 function attrByKey(key) { return ATTRS.filter(function (a) { return a.key === key; })[0]; }
 function skillName(key) {
   for (var i = 0; i < ATTRS.length; i++) {
@@ -248,6 +273,7 @@ function esc(s) {
 /* ------------------------------------------------------------------ */
 
 function loadSheet() {
+  if (DEMO) { app.sheet = migrate(DEMO_SHEET); return Promise.resolve(); }
   var read = app.ts
     ? TS.localStorage.campaign.getBlob()
     : new Promise(function (resolve) {
@@ -272,6 +298,7 @@ function loadSheet() {
 var saveTimer = null;
 function save() {
   clearTimeout(saveTimer);
+  if (DEMO) return;
   saveTimer = setTimeout(function () {
     var raw = JSON.stringify({ v: 2, sheet: app.sheet, combat: app.combat || null, journey: app.journey || null });
     if (app.ts) {
