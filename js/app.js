@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.12.0"; // atualizado por tools/release.py
+var APP_VERSION = "0.12.1"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -364,6 +364,7 @@ var ICON = {
   star: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"></path></svg>',
   crack: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L9 10h5l-4 12"></path><path d="M6 6l-2 2M18 14l2 2"></path></svg>',
   close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
+  gear: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>',
   map: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3.5 6v14L9 18l6 2 5.5-2V4L15 6z"></path><path d="M9 4v14"></path><path d="M15 6v14"></path></svg>',
   users: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"></path><path d="M18.5 14.8c1.6.8 2.6 2.5 3 5.2"></path></svg>',
   chevron: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>',
@@ -385,7 +386,8 @@ function render() {
     root.innerHTML = '<div class="app"><p class="muted">Carregando a ficha…</p></div>';
     return;
   }
-  var body = app.view === "roll" ? renderRoll()
+  var body = app.view === "settings" ? renderSettings()
+    : app.view === "roll" ? renderRoll()
     : app.view === "cast" && app.cast ? renderCast()
     : app.mode === "home" && app.canGM ? renderHome()
     : app.mode === "rolls" && app.canGM ? renderRequests()
@@ -395,7 +397,7 @@ function render() {
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
     : renderSheet();
-  root.innerHTML = '<div class="app">' + (app.view === "roll" || app.view === "cast" ? "" : renderModeBar()) + body + "</div>";
+  root.innerHTML = '<div class="app">' + (app.view === "roll" || app.view === "cast" || app.view === "settings" ? "" : renderModeBar()) + body + "</div>";
 }
 
 function initials(name) {
@@ -440,6 +442,7 @@ function renderHeader() {
         selectHtml("profession", "Profissão", C.PROFESSIONS, s.profession) +
       "</div>" +
     "</div>" +
+    '<button class="btn-icon sm gear" data-action="settingsOpen" aria-label="Configurações" title="Configurações">' + ICON.gear + "</button>" +
     (app.ts
       ? '<span class="pill"><span class="dot"></span>Na mesa</span>'
       : '<span class="pill offline" title="Aberto fora do TaleSpire"><span class="dot"></span>Navegador</span>') +
@@ -1298,8 +1301,8 @@ function parseImport(text) {
 
 function renderBackup() {
   var b = app.backup || {};
-  var html = '<h2 class="section-title">Cópia de segurança</h2>' +
-    '<p class="small muted" style="margin:0">Guarde uma cópia da ficha antes de atualizar o Symbiote, ou para levá-la a outra campanha ou outro computador. A cópia é um texto: cole num bloco de notas ou numa mensagem para você mesmo.</p>' +
+  var html = '<h2 class="eyebrow">Cópia de segurança</h2>' +
+    '<p class="small muted" style="margin:0">Guarde uma cópia da ficha antes de reinstalar o Symbiote, ou para levá-la a outra campanha ou outro computador. A cópia é um texto: cole num bloco de notas ou numa mensagem para você mesmo.</p>' +
     '<div class="row" style="gap:8px;flex-wrap:wrap">' +
       '<button class="btn-add" data-action="backupExport">' + ICON.copy + "Exportar ficha</button>" +
       '<button class="btn-ghost slim" data-action="backupOpenImport">Importar ficha</button>' +
@@ -1372,9 +1375,6 @@ function renderBackground() {
     text("darkSecret", "Segredo Sombrio", "", 2) +
     text("relationships", "Relacionamentos", "Uma linha por personagem da mesa.", 4) +
     text("talents", "Anotações", "", 6) +
-    renderBackup() +
-    renderTextSize() +
-    '<p class="small muted version-line">Ficha Forbidden Lands · versão ' + APP_VERSION + "</p>" +
   "</section>";
 }
 

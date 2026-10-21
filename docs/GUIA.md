@@ -19,7 +19,7 @@ Nas imagens estão Ylva Corvo-de-Cinza, uma caçadora humana, e Tyrgar Pedra-Fun
   - [Talentos](#talentos)
   - [Magia](#magia)
   - [Reputação, XP e Evoluir](#reputação-xp-e-evoluir)
-  - [Cópia de segurança](#cópia-de-segurança)
+  - [Configurações e cópia de segurança](#configurações-e-cópia-de-segurança)
 - **Para o Mestre**
   - [A mesa](#a-mesa)
   - [Grupo](#grupo)
@@ -308,17 +308,26 @@ Pelo livro, gasta-se XP descansando ou dormindo, e atributos não evoluem com XP
 
 <br clear="right">
 
-## Cópia de segurança
+## Configurações e cópia de segurança
 
-<img src="img/21-copia.png" width="330" align="right">
+<img src="img/21-configuracoes.png" width="330" align="right">
 
-No fim da aba Histórico:
+A **engrenagem** no cabeçalho da ficha (e na home do Mestre) abre as Configurações.
+
+**Aparência** vale só para o seu computador, em todas as campanhas:
+
+- **Esquema de cores**: Ferro e latão, Ferro frio, Couro e osso, Musgo e bronze ou Pergaminho (claro). Cada pessoa da mesa escolhe o seu.
+- **Tamanho do texto**: Normal, Grande ou Maior.
+
+**Cópia de segurança** é da ficha:
 
 - **Exportar ficha** copia a ficha inteira como texto. Cole num bloco de notas ou mande para você mesmo.
 - **Importar ficha** traz a cópia de volta.
 - **Limpar ficha** recomeça do zero. Ela pede confirmação antes.
 
-**Faça uma cópia antes de atualizar o Symbiote.** Também serve para levar a ficha para outra campanha ou outro computador.
+**Faça uma cópia antes de reinstalar o Symbiote.** Também serve para levar a ficha para outra campanha ou outro computador.
+
+O número da versão da ficha aparece no fim dessa página.
 
 <br clear="right">
 
@@ -500,10 +509,10 @@ Se alguém não aparece na lista, peça para o jogador abrir a ficha e clique em
 Não precisa deixá-la na tela, mas o Symbiote precisa estar ativo e você precisa estar no mesmo tabuleiro. Sem isso, o Mestre não vê você no Grupo e você não recebe XP nem a carta de iniciativa.
 
 **Preciso atualizar o Symbiote?**
-Não. A ficha carrega da internet, e cada versão nova chega sozinha na próxima vez que você abre o Symbiote. O número da versão aparece no fim da aba Histórico.
+Não. A ficha carrega da internet, e cada versão nova chega sozinha na próxima vez que você abre o Symbiote. O número da versão aparece no fim das Configurações (a engrenagem no cabeçalho).
 
 **Remover o Symbiote apaga a ficha?**
-Sim. As fichas ficam salvas na pasta do Symbiote, por campanha. Só remova se for reinstalar, e faça uma [cópia de segurança](#cópia-de-segurança) antes.
+Sim. As fichas ficam salvas na pasta do Symbiote, por campanha. Só remova se for reinstalar, e faça uma [cópia de segurança](#configurações-e-cópia-de-segurança) antes.
 
 **O TaleSpire mostra a soma dos dados. Está errado?**
 A soma dos d6 não significa nada no Forbidden Lands, por isso a ficha esconde o resultado nativo. Vale o que aparece na ficha e no chat.

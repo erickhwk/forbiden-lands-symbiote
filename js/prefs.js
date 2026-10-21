@@ -1,5 +1,6 @@
 /*
- * Preferências do computador (não da ficha): esquema de cores e tamanho do texto.
+ * Configurações: esquema de cores e tamanho do texto (deste computador) e a
+ * página que os reúne com a cópia de segurança da ficha.
  *
  * No TaleSpire, ficam em TS.localStorage.global (vale para todas as campanhas
  * deste computador). No navegador, em localStorage. O tamanho é aplicado com
@@ -73,7 +74,21 @@ function renderTextSize() {
   "</div>";
 }
 
+/* Página de Configurações: aparência (deste computador) e cópia de segurança (da ficha). */
+function renderSettings() {
+  return '<div class="back">' +
+      '<button class="btn-icon sm" data-action="settingsClose" aria-label="Voltar">' + ICON.back + "</button>" +
+      '<div><p class="eyebrow">' + esc(app.sheet.name || "Ficha") + '</p><h1 class="title">Configurações</h1></div></div>' +
+    '<section class="stack" aria-label="Aparência"><h2 class="eyebrow">Aparência</h2>' +
+      '<p class="small muted" style="margin:0">Vale só para este computador, em todas as campanhas. Cada pessoa da mesa escolhe a sua.</p>' +
+      renderTextSize() + "</section>" +
+    '<section class="stack" aria-label="Cópia de segurança">' + renderBackup() + "</section>" +
+    '<p class="small muted version-line">Ficha Forbidden Lands · versão ' + APP_VERSION + "</p>";
+}
+
 Object.assign(actions, {
+  settingsOpen: function () { app.view = "settings"; window.scrollTo(0, 0); },
+  settingsClose: function () { app.view = "sheet"; app.backup = null; window.scrollTo(0, 0); },
   textSize: function (el) {
     app.prefs.textScale = +el.dataset.scale;
     applyPrefs();

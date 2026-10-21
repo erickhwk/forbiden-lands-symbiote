@@ -2,6 +2,10 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.12.1
+
+- Nova página de Configurações, aberta pela engrenagem no cabeçalho da ficha (e na home do Mestre). Lá ficam o esquema de cores, o tamanho do texto, a cópia de segurança (exportar, importar e limpar) e o número da versão. A aba Histórico fica só com o personagem.
+
 ## 0.12.0
 
 - Escolha o esquema de cores da sua ficha no fim da aba Histórico (e na home do Mestre): Ferro e latão, Ferro frio, Couro e osso, Musgo e bronze ou Pergaminho. Cada um escolhe o seu; fica salvo neste computador.

@@ -36,7 +36,7 @@ Ficha de personagem de Forbidden Lands que roda dentro do TaleSpire como Symbiot
 - Escudo do Mestre: as regras do Manual do Jogador resumidas para consulta (combate, zonas, dano e perigos, conflito social, jornada), com busca, e tabelas para rolar na bandeja (infortúnios da jornada, caça, infortúnio mágico, ferimentos graves para PNJs), com opção de mostrar no chat e de pedir a rolagem que o infortúnio exige.
 - Iniciativa com o baralho de 10 cartas (aba só para quem pode ser mestre): montar o combate com as fichas abertas na mesa, a fila do TaleSpire, os minis selecionados ou nomes escritos; grupos de PNJs iguais; cartas extras por surpresa ou Rápido como um Raio, com escolha da carta; rodadas, vez de cada um, marcação de ação rápida e lenta, troca de cartas e FINTAR. A ordem e a vez aparecem no chat e na ficha de cada jogador. O chat marca essas rolagens como "rolado na ficha".
 
-A ficha é salva por campanha, no próprio TaleSpire. Na aba Histórico, "Exportar ficha" copia a ficha inteira como texto, "Importar ficha" a traz de volta e "Limpar ficha" recomeça do zero (pedindo confirmação). Guarde uma cópia antes de atualizar o Symbiote, ou use para levar a ficha para outra campanha ou outro computador.
+A ficha é salva por campanha, no próprio TaleSpire. A engrenagem no cabeçalho abre as Configurações: esquema de cores e tamanho do texto (por computador) e a cópia de segurança, em que "Exportar ficha" copia a ficha inteira como texto, "Importar ficha" a traz de volta e "Limpar ficha" recomeça do zero (pedindo confirmação). Guarde uma cópia antes de reinstalar o Symbiote, ou use para levar a ficha para outra campanha ou outro computador.
 
 ## Instalar
 
@@ -98,6 +98,7 @@ npm test
 - `js/gm.js`: home do painel do Mestre e pedidos de rolagem.
 - `js/travel.js`: tela da Jornada.
 - `js/escudo.js`: tela do Escudo do Mestre.
+- `js/prefs.js`: Configurações (esquema de cores, tamanho do texto, cópia de segurança).
 - `js/news.js`: aviso de novidades, lido do `CHANGELOG.md`.
 - `js/app.js`: ficha, telas, bandeja de dados, chat e armazenamento.
 - `css/style.css`: visual.
