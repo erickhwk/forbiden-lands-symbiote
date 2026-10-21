@@ -746,3 +746,70 @@ details.spell[open] summary .item-name { color: var(--accent); }
 .swatch i { width: 7px; height: 7px; transform: rotate(45deg); }
 .who .gear { align-self: flex-start; }
 .look-prefs .text-size:first-child { margin-top: 0; }
+
+/* ---------- Bestiário ---------- */
+.best-list { display: flex; flex-direction: column; gap: 6px; }
+.best-row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 12px; text-align: left; font: inherit; color: var(--text); cursor: pointer;
+  border-radius: 4px; border: 1px solid var(--border); background: var(--surface);
+}
+.best-row:hover { border-color: var(--accent); }
+.best-row > svg { color: var(--muted); flex-shrink: 0; }
+.best-row .grow { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.best-name { font-family: var(--display); font-size: 18px; font-weight: 600; }
+.best-rules summary { font-weight: 600; }
+.best-stats { display: grid; gap: 6px; }
+.best-trait { font-size: 14px; line-height: 1.45; padding: 8px 10px; border-radius: 4px; border-left: 3px solid var(--brass); background: var(--surface); }
+.best-trait strong { font-family: var(--display); font-size: 15px; }
+.best-attacks, .best-add { display: flex; flex-direction: column; gap: 10px; }
+
+.atk-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.atk { border-radius: 4px; border: 1px solid var(--border); background: var(--surface-2); }
+.atk.sel { border-color: #8A6A2E; background: #2E2414; }
+.atk-head {
+  display: flex; align-items: flex-start; gap: 10px; width: 100%;
+  padding: 8px 10px; text-align: left; font: inherit; color: var(--text);
+  background: none; border: none; cursor: pointer;
+}
+.atk-head:disabled { cursor: default; opacity: 1; }
+.atk-head .grow { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.atk-n {
+  width: 26px; height: 26px; flex-shrink: 0; margin-top: 1px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 3px; background: var(--text); color: var(--bg);
+  font-family: var(--display); font-size: 16px; font-weight: 700;
+}
+.atk.sel .atk-n { background: var(--success); }
+.atk.fear .atk-n { background: #5A4470; color: #F1E9F7; }
+.atk-name { font-family: var(--display); font-size: 16px; font-weight: 600; }
+.atk-line { font-size: 13px; }
+.atk-fx { font-size: 13px; line-height: 1.4; color: var(--muted); }
+.atk.sel .atk-fx { color: var(--text); }
+.atk-roll { display: flex; flex-direction: column; gap: 8px; padding: 0 10px 10px 46px; }
+.atk-dice { display: flex; flex-wrap: wrap; gap: 4px; }
+.atk-dice .die { width: 28px; height: 28px; font-size: 15px; }
+.atk-result { font-size: 15px; }
+.atk-result.atk-hit strong { color: var(--success); }
+.atk-result.atk-miss { color: var(--muted); }
+.init-extra .btn-ghost.slim, .atk-roll .btn-ghost.slim { display: inline-flex; align-items: center; gap: 6px; }
+.init-extra .btn-ghost.slim svg { width: 18px; height: 18px; }
+.btn-primary.slim { width: auto; height: 40px; padding: 0 14px; font-size: 15px; }
+
+.init-row { flex-wrap: wrap; }
+.init-row.out { opacity: 0.55; }
+.init-row.out .item-name { text-decoration: line-through; }
+.init-extra { flex-basis: 100%; display: flex; flex-direction: column; gap: 8px; padding-left: 46px; }
+.hp-lines { display: flex; flex-direction: column; gap: 4px; }
+.hp-line { display: flex; align-items: center; gap: 8px; }
+.hp-who { width: 40px; flex-shrink: 0; font-size: 12px; color: var(--muted); }
+.hp-bar { flex: 1; min-width: 40px; height: 8px; border-radius: 2px; background: var(--surface-2); overflow: hidden; }
+.hp-bar i { display: block; height: 100%; background: var(--info); transition: width .2s; }
+.hp-line.half .hp-bar i { background: var(--success); }
+.hp-line.out .hp-bar i { background: var(--accent); }
+.hp-num { width: 62px; flex-shrink: 0; text-align: right; font-family: var(--display); font-size: 17px; font-weight: 600; }
+.hp-line.out .hp-num { font-family: var(--body); font-size: 12px; color: var(--bane); }
+.btn-step.sm { width: 30px; height: 30px; font-size: 16px; }
+.hp-alert { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.4; color: var(--success); }
+.hp-alert svg { flex-shrink: 0; width: 16px; height: 16px; margin-top: 1px; }
+.best-row .chip-s { white-space: nowrap; flex-shrink: 0; }

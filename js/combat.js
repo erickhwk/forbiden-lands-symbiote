@@ -309,6 +309,7 @@ function renderSetup(c) {
           '<button class="link-btn inline" data-action="combatKind" data-id="' + e.id + '">' + (e.kind === "pc" ? "Personagem jogador" : "PNJ") + "</button>" +
           (e.count > 1 ? " · grupo de " + e.count : "") +
           (e.clientId ? " · ficha ligada" : "") +
+          (e.hpMax ? " · Força " + e.hpMax : "") +
         "</div>" +
       "</div>" +
       '<span class="small muted" title="Cartas extras: surpresa, Rápido como um Raio…">+cartas</span>' +
@@ -359,7 +360,10 @@ function renderAdders(c) {
     '<select id="f-combat-count" class="field" style="width:auto;margin-top:0" title="Quantos iguais (um grupo compra uma carta)">' +
       [1, 2, 3, 4, 5, 6, 8, 10].map(function (n) { return '<option value="' + n + '">×' + n + "</option>"; }).join("") +
     "</select>" +
+    '<label for="f-combat-hp" class="sr-only">Força (opcional)</label>' +
+    '<input id="f-combat-hp" class="field" type="number" min="1" max="99" inputmode="numeric" placeholder="Força" title="Força de cada um (opcional), para descontar o dano" style="width:76px;margin-top:0">' +
     '<button class="btn-add" data-action="combatAddManual">Adicionar</button></div>' +
+    '<p class="small muted" style="margin:0">Monstros e animais entram pelo <button class="link-btn inline" data-action="mode" data-mode="bestiary">Bestiário</button>, já com a Força.</p>' +
   "</section>";
   return html;
 }
@@ -385,12 +389,14 @@ function renderRunning(c) {
   html += '<section class="init-list" aria-label="Ordem de iniciativa">' + I.sorted(c).map(function (e) {
     var isCur = cur && cur.id === e.id && c.phase === "running";
     var swapping = c.pendingSwaps.some(function (p) { return p[0] === e.id || p[1] === e.id; });
-    return '<div class="init-row' + (isCur ? " current" : "") + '"' + (isCur ? ' aria-current="true"' : "") + ">" +
+    var out = I.down(e);
+    return '<div class="init-row' + (isCur ? " current" : "") + (out ? " out" : "") + '"' + (isCur ? ' aria-current="true"' : "") + ">" +
       '<span class="init-card">' + e.card + "</span>" +
       '<div class="grow"><div class="item-name">' + esc(label(e)) + "</div>" +
-        '<div class="small muted">' + (e.kind === "pc" ? "Personagem jogador" : "PNJ") + (swapping ? " · fintou: troca na próxima rodada" : "") + "</div></div>" +
+        '<div class="small muted">' + (out ? "Acabado" : e.mon ? (B.get(e.mon) && B.get(e.mon).kind === "animal" ? "Animal" : "Monstro") : e.kind === "pc" ? "Personagem jogador" : "PNJ") + (swapping ? " · fintou: troca na próxima rodada" : "") + "</div></div>" +
       '<button class="act' + (e.fast ? " on" : "") + '" data-action="combatAct" data-id="' + e.id + '" data-which="fast" aria-pressed="' + e.fast + '" title="Ação rápida">Rápida</button>' +
       '<button class="act' + (e.slow ? " on" : "") + '" data-action="combatAct" data-id="' + e.id + '" data-which="slow" aria-pressed="' + e.slow + '" title="Ação lenta">Lenta</button>' +
+      (e.hp || e.mon ? '<div class="init-extra">' + renderHpLines(e) + (out ? "" : renderMonButtons(e)) + "</div>" : "") +
     "</div>";
   }).join("") + "</section>";
 
@@ -565,7 +571,8 @@ Object.assign(actions, {
     var count = +document.getElementById("f-combat-count").value || 1;
     var name = input && input.value.trim();
     if (!name) { toast("Escreva o nome do combatente."); return false; }
-    addCombatant({ name: name, kind: "npc", count: count });
+    var hp = +(document.getElementById("f-combat-hp") || {}).value || 0;
+    addCombatant({ name: name, kind: "npc", count: count, hpMax: hp });
     return false;
   },
 

@@ -373,6 +373,7 @@ var ICON = {
   cards: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 6V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-5"></path></svg>',
   plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>',
   next: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>',
+  claw: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 3c3 4 3.5 10 1.5 18"></path><path d="M11.5 3c2.8 4.5 3 10.5 1 18"></path><path d="M17 3c2.6 5 2.6 11 .6 18"></path></svg>',
   tray: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5FB3BD" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path><circle cx="12" cy="12" r="3"></circle></svg>'
 };
 
@@ -393,6 +394,7 @@ function render() {
     : app.mode === "rolls" && app.canGM ? renderRequests()
     : app.mode === "journey" && app.canGM ? renderJourney()
     : app.mode === "shield" && app.canGM ? renderShield()
+    : app.mode === "bestiary" && app.canGM ? renderBestiary()
     : app.mode === "group" && app.canGM ? renderGroup()
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
@@ -1134,6 +1136,7 @@ function handleResourceRoll(ev) {
   delete app.resRolls[ev.payload.rollId];
   if (key === "__cast" || key === "__mishap") { handleCastRoll(key, ev); return; }
   if (key && key.indexOf("__shield:") === 0) { handleShieldRoll(key.slice(9), ev); return; }
+  if (key && key.indexOf("__mon:") === 0) { handleMonRoll(+key.slice(6), ev); return; }
   if (key && key.indexOf("__inj:") === 0) {
     if (ev.kind === "rollResults") {
       var groups = (ev.payload.resultsGroups || []).map(readGroup);

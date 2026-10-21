@@ -28,6 +28,7 @@ app.resRequest = {};      // jogador: recurso -> id do pedido
 
 function renderGmNav() {
   if (!app.canGM || !app.ts || app.mode === "home") return "";
+  if (app.mode === "bestiary" && app.bestiary.open) return "";
   return '<div class="gm-back"><button class="link-btn inline" data-action="mode" data-mode="home">' + ICON.back + "<span>Painel do Mestre</span></button></div>";
 }
 
@@ -77,6 +78,12 @@ function renderHome() {
     rq ? requestTitle(rq) : "Peça a um ou mais jogadores",
     rq ? requestProgress(rq) : "Perícia, atributo ou recurso",
     rq && requestPending(rq) ? "live" : ""));
+
+  var foes = c ? c.entries.filter(function (e) { return e.mon; }) : [];
+  cards.push(homeCard("bestiary", ICON.claw, "Bestiário",
+    E.plural(B.LIST.filter(function (m) { return m.kind === "monstro"; }).length, "monstro", "monstros") + " e animais",
+    foes.length ? E.plural(foes.length, "criatura", "criaturas") + " no combate" : "Ataques e Força na Iniciativa",
+    foes.length ? "live" : ""));
 
   cards.push(homeCard("shield", ICON.shield, "Escudo do Mestre",
     "Combate, perigos, social e jornada",

@@ -43,9 +43,11 @@
   }
 
   /*
-   * data: { name, kind: "pc"|"npc", extra, count, clientId, key }
+   * data: { name, kind: "pc"|"npc", extra, count, clientId, key, mon, hpMax }
    * extra = cartas além da primeira (surpresa, talento).
    * count > 1 = grupo de PNJs iguais, que compra uma carta só.
+   * mon = id no bestiário; hpMax = Força de cada cópia (PNJ). hp guarda a
+   * Força atual de cada cópia do grupo.
    */
   function addEntry(c, data) {
     var e = {
@@ -56,13 +58,30 @@
       count: Math.max(1, data.count | 0 || 1),
       clientId: data.clientId || null,
       key: data.key || null,
+      mon: data.mon || null,
+      hpMax: Math.max(0, data.hpMax | 0),
+      hp: null,
       card: null,
       options: null,
       fast: false,
       slow: false
     };
+    if (e.hpMax) { e.hp = []; for (var i = 0; i < e.count; i++) e.hp.push(e.hpMax); }
     c.entries.push(e);
     return e;
+  }
+
+  /* Muda a Força de uma cópia (idx) entre 0 e o máximo. */
+  function setHp(c, id, idx, delta) {
+    var e = find(c, id);
+    if (!e || !e.hp || idx < 0 || idx >= e.hp.length) return null;
+    e.hp[idx] = Math.max(0, Math.min(e.hpMax, e.hp[idx] + delta));
+    return e.hp[idx];
+  }
+
+  /* Todas as cópias Acabadas? */
+  function down(e) {
+    return !!(e && e.hp && e.hp.length && e.hp.every(function (h) { return h === 0; }));
   }
 
   function removeEntry(c, id) {
@@ -229,6 +248,8 @@
     prev: prev,
     swap: swap,
     toggleAction: toggleAction,
+    setHp: setHp,
+    down: down,
     find: find,
     shuffle: shuffle
   };
