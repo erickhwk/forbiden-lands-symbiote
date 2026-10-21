@@ -1,0 +1,241 @@
+/*
+ * Camada visual: ferro, couro e latão.
+ *
+ * Carregada depois de style.css. Não muda a estrutura das telas, só o
+ * acabamento: textura de fundo, painéis de ferro com bisel, títulos com filete
+ * de latão, atributos em escudo heráldico, Força de Vontade em losangos e
+ * botões de placa forjada. Tudo em CSS e SVG embutido, sem imagens.
+ */
+
+/* ---------- Fundo: grão de pedra e um calor vindo de cima ---------- */
+
+html, body {
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .92 0 0 0 0 .82 0 0 0 0 .62 0 0 0 .055 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(120% 60% at 50% -10%, rgba(168, 68, 42, 0.16), transparent 60%),
+    radial-gradient(140% 90% at 50% 120%, rgba(0, 0, 0, 0.55), transparent 60%);
+  background-attachment: fixed;
+}
+
+/* ---------- Painéis de ferro ---------- */
+
+.card, .load, .banner, .evolve-bar, .init-row, .damage, #toast {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 200, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.card {
+  background: linear-gradient(180deg, rgba(255, 238, 205, 0.03), rgba(0, 0, 0, 0.14)), var(--surface);
+  border-color: rgba(184, 149, 90, 0.2);
+}
+
+/* Rótulos: Spectral em caixa normal, cor de latão (nada de caixa alta espaçada) */
+.eyebrow {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--brass-hi);
+}
+
+/* Títulos de seção: filete de latão que termina num losango */
+h2.eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  flex: 1 1 auto; min-width: 0;
+  font-size: 16px;
+}
+h2.eyebrow::after {
+  content: "";
+  flex: 1 1 auto; min-width: 16px; height: 7px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M4 0L8 4L4 8L0 4Z' fill='%23B8955A'/%3E%3C/svg%3E") right center / 7px 7px no-repeat,
+    linear-gradient(90deg, var(--brass-dim), var(--brass) 94%, transparent 94%) left center / 100% 1px no-repeat;
+}
+.row.between > h2.eyebrow { margin-right: 10px; }
+
+/* ---------- Cabeçalho emoldurado ---------- */
+
+.who {
+  position: relative;
+  padding: 14px 14px 12px;
+  border: 1px solid rgba(184, 149, 90, 0.22);
+  border-radius: 4px;
+  background:
+    linear-gradient(var(--brass), var(--brass)) top left / 16px 2px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) top left / 2px 16px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) top right / 16px 2px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) top right / 2px 16px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) bottom left / 16px 2px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) bottom left / 2px 16px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) bottom right / 16px 2px no-repeat,
+    linear-gradient(var(--brass), var(--brass)) bottom right / 2px 16px no-repeat,
+    linear-gradient(180deg, rgba(168, 68, 42, 0.12), transparent 70%),
+    var(--surface);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 200, 0.05), 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.avatar {
+  border: 2px solid var(--brass);
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px var(--brass-dim), inset 0 0 12px rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle at 35% 30%, #3A2C1F, #1A1410 70%);
+  color: var(--brass-hi);
+}
+.plain-input.name { font-size: 22px; }
+.who > .grow { flex: 1 1 160px; }
+.who .pill {
+  position: absolute; top: -12px; right: 18px;
+  padding: 3px 10px;
+  background: var(--bg);
+  font-size: 12px;
+}
+.plain-select { color: var(--brass-hi); border-color: rgba(184, 149, 90, 0.25); }
+.pill { border-color: rgba(184, 149, 90, 0.3); }
+
+/* ---------- Atributos em escudo heráldico ---------- */
+
+.card.attr {
+  --shield: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+  position: relative;
+  align-items: center; text-align: center;
+  gap: 8px;
+  padding: 14px 12px 34px;
+  border: none; border-radius: 0;
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass) 40%, #6E5634);
+  clip-path: var(--shield);
+  box-shadow: none;
+}
+.card.attr::before {
+  content: "";
+  position: absolute; inset: 2px;
+  clip-path: var(--shield);
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(255, 236, 200, 0.08), transparent 70%),
+    linear-gradient(180deg, #241D16, #16120E);
+}
+.card.attr > * { position: relative; }
+.card.attr > .row.between { justify-content: center; width: 100%; }
+.card.attr .eyebrow { font-size: 15px; }
+.card.attr .attr-value { font-size: 40px; font-weight: 700; color: var(--text); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6); }
+.card.attr .attr-value .max { font-size: 17px; }
+.card.attr .btn-icon { position: absolute; top: -2px; right: -2px; }
+.card.attr .pips { justify-content: center; }
+.card.attr .attr-max { justify-content: center; }
+.card.attr.broken { background: linear-gradient(180deg, #FF9C8C, var(--bane) 40%, #6B2A20); }
+.card.attr.broken::before { background: linear-gradient(180deg, #34170F, #1E0F0B); }
+.card.attr.broken .attr-value { color: #FF9C8C; }
+
+.pip {
+  border-radius: 2px;
+  border-color: #D9CCAF;
+  background: linear-gradient(180deg, #F6EEDC, #CDBF9F);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+.pip.off { background: rgba(224, 96, 78, 0.08); border-color: var(--bane); box-shadow: none; }
+
+/* ---------- Selos e botões de placa forjada ---------- */
+
+.btn-icon {
+  border-radius: 50%;
+  border: 1.5px solid var(--brass);
+  background: radial-gradient(circle at 35% 30%, #3A2D20, #18130F 75%);
+  color: var(--brass-hi);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.45), 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+.btn-icon.sm { border-color: var(--brass-dim); background: radial-gradient(circle at 35% 30%, #2E241A, #16120E 75%); }
+.btn-icon:hover:not(:disabled) { border-color: var(--brass-hi); color: var(--text); }
+
+.btn-primary {
+  border-radius: 0;
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+  background: linear-gradient(180deg, #C25534, var(--accent) 55%, #7E2F1C);
+  color: #FFF1E2;
+  font-family: var(--display); font-size: 18px; font-weight: 600; letter-spacing: 0.01em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 190, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+}
+.btn-primary:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--brass-hi); }
+
+.btn-add, .btn-use, .btn-spend {
+  border-color: rgba(184, 149, 90, 0.55);
+  background: linear-gradient(180deg, #33261B, #241B14);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 200, 0.06), 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+.btn-add:hover:not(:disabled), .btn-use:hover:not(:disabled), .btn-spend:hover:not(:disabled) { border-color: var(--brass-hi); }
+.btn-add svg, .btn-use svg { color: var(--brass-hi); }
+.btn-add.danger { border-color: var(--bane); background: linear-gradient(180deg, #4A1E16, #34140E); }
+
+.btn-ghost { border-color: rgba(184, 149, 90, 0.35); }
+.btn-ghost:hover:not(:disabled) { border-color: var(--brass); }
+.btn-step { background: linear-gradient(180deg, #2C2219, #1E1813); border-color: rgba(184, 149, 90, 0.25); }
+.link-btn.inline { color: var(--brass-hi); }
+
+/* ---------- Força de Vontade em losangos ---------- */
+
+.wp button {
+  position: relative;
+  height: 26px;
+  border: none;
+  background: none;
+}
+.wp button::before {
+  content: "";
+  position: absolute; left: 50%; top: 50%;
+  width: 14px; height: 14px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 1.5px solid rgba(184, 149, 90, 0.5);
+  background: rgba(0, 0, 0, 0.25);
+}
+.wp button.on { background: none; border: none; }
+.wp button.on::before {
+  border-color: var(--brass-hi);
+  background: linear-gradient(135deg, #F0CF8A, var(--brass) 55%, #7A5D33);
+  box-shadow: 0 0 8px rgba(226, 196, 137, 0.35);
+}
+
+/* ---------- Condições, abas e seletores ---------- */
+
+.toggle { background: linear-gradient(180deg, #221B15, #1A1511); border-color: rgba(184, 149, 90, 0.2); }
+.toggle[aria-pressed="true"] { border-color: var(--brass); background: linear-gradient(180deg, #4A2416, #2E160E); color: var(--brass-hi); }
+
+.tabs { border-bottom: 1px solid var(--brass-dim); }
+.tabs button { font-family: var(--display); font-size: 16px; color: var(--muted); }
+.tabs button[aria-selected="true"] {
+  color: var(--brass-hi);
+  border-bottom-color: var(--brass);
+  background: linear-gradient(0deg, rgba(184, 149, 90, 0.14), transparent 70%);
+}
+
+.seg button { border-color: rgba(184, 149, 90, 0.18); background: linear-gradient(180deg, #241C16, #1B1612); }
+.seg button[aria-pressed="true"] { border-color: var(--brass); background: linear-gradient(180deg, #3A2C1C, #2A2015); color: var(--brass-hi); }
+
+.field { border-color: rgba(184, 149, 90, 0.22); background: rgba(10, 8, 6, 0.45); }
+.field:focus { border-color: var(--brass); }
+
+/* ---------- Perícias ---------- */
+
+.skill-group h3 { color: var(--brass-hi); }
+.skill-group h3 + .small, .skill-group .muted { color: var(--muted); }
+.skill-row { border-top-color: rgba(184, 149, 90, 0.1); }
+.skill-row .level { color: var(--text); }
+
+/* ---------- Dados e resultado ---------- */
+
+.die { border-radius: 6px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -3px 0 rgba(0, 0, 0, 0.22), 0 2px 0 rgba(0, 0, 0, 0.45); }
+.tray-preview span { border-radius: 5px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(0, 0, 0, 0.4); }
+.big .n { text-shadow: 0 0 22px rgba(232, 184, 74, 0.25), 0 2px 0 rgba(0, 0, 0, 0.6); }
+.big .w { color: var(--brass-hi); }
+
+/* ---------- Detalhes que usavam o laranja como texto ---------- */
+
+.jy-quarter, .news-title, details.spell[open] summary .item-name { color: var(--brass-hi); }
+.home-card .home-icon { color: var(--brass-hi); border: 1px solid var(--brass-dim); background: radial-gradient(circle at 35% 30%, #3A2D20, #18130F 80%); border-radius: 50%; }
+.home-card:hover, .home-sheet:hover { border-color: var(--brass); }
+.cond-item { border-left-color: var(--brass); }
+.card.news { border-color: var(--brass); }
+
+@media (prefers-reduced-motion: reduce) {
+  html, body { background-attachment: scroll; }
+}

@@ -2,6 +2,10 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.11.0
+
+- Visual novo, de ferro, couro e latão: atributos em escudo heráldico, cabeçalho emoldurado, Força de Vontade em losangos, títulos com filete de latão e botões de placa forjada.
+
 ## 0.10.1
 
 - Tamanho do texto: Normal, Grande ou Maior, no fim da aba Histórico e na home do Mestre. A escolha fica salva neste computador.
