@@ -983,7 +983,7 @@ function renderGear() {
 
   var picker = '<option value="">Escolha um item…</option>' +
     C.GEAR.map(function (grp) {
-      return '<optgroup label="' + esc(grp.group) + '">' + grp.items.map(function (it) {
+      return '<optgroup label="' + esc(grp.group) + '">' + sortByName(grp.items).map(function (it) {
         var bits = [];
         if (it.bonus != null) bits.push("bônus " + it.bonus);
         if (it.weight && it.weight !== "normal") bits.push(W.WEIGHTS[it.weight].label.toLowerCase());
@@ -1008,6 +1008,11 @@ function renderGear() {
 /* ---------- Consumíveis (Dados de Recurso) ---------- */
 
 /* Moedas: uma a uma não pesam; cada 100 moedas valem meio item (100 leve, 200 normal, 400 pesado). */
+/* Ordem alfabética em português (Água junto de Agulha, sem separar maiúsculas). */
+function sortByName(list) {
+  return list.slice().sort(function (a, b) { return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }); });
+}
+
 function coinTotal() { var c = app.sheet.coins; return c.cobre + c.prata + c.ouro; }
 function coinWeight() { return Math.floor(coinTotal() / 100) * 0.5; }
 
