@@ -26,6 +26,7 @@ Nas imagens estão Ylva Corvo-de-Cinza, uma caçadora humana, e Tyrgar Pedra-Fun
   - [Iniciativa](#iniciativa)
   - [Pedir rolagem](#pedir-rolagem)
   - [Jornada](#jornada)
+  - [Escudo do Mestre](#escudo-do-mestre)
   - [Fim de sessão](#fim-de-sessão)
 - [Dúvidas comuns](#dúvidas-comuns)
 
@@ -337,6 +338,7 @@ A tela inicial do painel tem um card para cada ferramenta, com o estado ao vivo:
 - **Iniciativa**: se há combate, a rodada e de quem é a vez;
 - **Jornada**: dia, Quarto, estação e terreno;
 - **Pedir rolagem**: quantos jogadores já rolaram o último pedido;
+- **Escudo do Mestre**: regras para consultar e tabelas para rolar;
 - **Fim de sessão**: XP concedido.
 
 Os alertas urgentes, como um ferimento letal, aparecem no topo. **Minha ficha** abre uma ficha comum, se você também quiser jogar com um personagem. Em qualquer ferramenta, **← Painel do Mestre** volta para cá.
@@ -443,6 +445,35 @@ Ao encerrar a Noite, a tela mostra quem fica **Faminto**, **Desidratado** ou **I
 <img src="img/36-jogador-jornada.png" width="330">
 
 Na ficha do jogador aparece uma faixa com o dia, o Quarto, a estação e a atividade dele.
+
+## Escudo do Mestre
+
+<img src="img/37-escudo.png" width="330" align="right">
+
+Consulta rápida das regras do Manual do Jogador, resumidas:
+
+- **Combate**: ações lentas e rápidas, ataque e defesa, emboscada, combate à distância, montado.
+- **Zonas**: distâncias, características das zonas e das fronteiras, fugir.
+- **Dano e perigos**: dificuldade e ajuda, armadura e cobertura, recuperação, medo, queda, afogamento, escuridão, veneno, doença e condições.
+- **Social**: manipular e posição de negociação.
+- **Jornada**: terreno, luz por estação, atividades e marcha forçada.
+
+A **busca** no topo procura em todas as seções e ignora acentos: "esquiv", "veneno", "queda".
+
+<br clear="right">
+
+<img src="img/38-escudo-tabelas.png" width="330" align="right">
+
+Em **Tabelas** ficam as tabelas para rolar:
+
+- infortúnios de Desbravar, Coleta, Caça, Pesca, Acampamento e Viagem Marítima;
+- o animal da caça;
+- infortúnio mágico;
+- ferimentos graves, para os PNJs.
+
+**Rolar** coloca os dados na sua bandeja, sem ir para o chat. O resultado aparece em destaque, e você decide se usa **Mostrar no chat**. Quando o infortúnio pede uma rolagem dos jogadores, como Potência na areia movediça, aparece **Pedir … a todos**. **Ver tabela** mostra a tabela inteira com o resultado marcado. Os infortúnios de Acampamento vêm marcados "em segredo": pelo livro, o Mestre rola às escondidas e solta o infortúnio quando quiser.
+
+<br clear="right">
 
 ## Fim de sessão
 

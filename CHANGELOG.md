@@ -2,6 +2,11 @@
 
 A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote abre. O número da versão aparece no fim da aba Histórico.
 
+## 0.10.0
+
+- Escudo do Mestre: as regras do Manual do Jogador para consultar (combate, zonas, dano e perigos, conflito social, jornada), com busca.
+- Tabelas para o Mestre rolar na bandeja: infortúnios da jornada, caça, infortúnio mágico e ferimentos graves para PNJs. O resultado vai para o chat só se o Mestre quiser, e o infortúnio que pede rolagem vira um pedido para os jogadores.
+
 ## 0.9.1
 
 - A ficha avisa as novidades na primeira vez que abre numa versão nova.

@@ -77,6 +77,11 @@ function renderHome() {
     rq ? requestProgress(rq) : "Perícia, atributo ou recurso",
     rq && requestPending(rq) ? "live" : ""));
 
+  cards.push(homeCard("shield", ICON.shield, "Escudo do Mestre",
+    "Combate, perigos, social e jornada",
+    "Tabelas de infortúnio para rolar",
+    ""));
+
   var g = app.grant, sent = g ? Object.keys(g.sent).length : 0;
   cards.push(homeCard("session", ICON.star, "Fim de sessão",
     sent ? g.xp + " XP para " + E.plural(sent, "personagem", "personagens") : "Conceder XP",

@@ -695,3 +695,19 @@ details.spell[open] summary .item-name { color: var(--accent); }
 .news-title { display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--display); font-size: 17px; font-weight: 600; color: var(--accent); }
 .news-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 .card.news .btn-add { align-self: flex-start; }
+
+/* Escudo do Mestre */
+.shield-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.shield-tabs button { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; }
+.shield-tabs button[aria-pressed="true"] { border-color: var(--accent); color: var(--text); background: var(--surface-2); }
+.shield-block { display: flex; flex-direction: column; gap: 8px; }
+.shield-h { margin: 0; font-family: var(--display); font-size: 17px; font-weight: 600; }
+.ref-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ref-table th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 4px 6px 6px 0; border-bottom: 1px solid var(--border-strong); }
+.ref-table td { padding: 6px 6px 6px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table.compact td:first-child { white-space: nowrap; color: var(--muted); width: 44px; }
+.ref-table tr.row-hit td { background: #2E2414; }
+.shield-notes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+.shield-result { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: #2E2414; border: 1px solid #8A6A2E; }
+.stat-num.sm { font-size: 20px; }

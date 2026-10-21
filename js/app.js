@@ -17,7 +17,7 @@ var W = window.FLEncumbrance;
 var R = window.FLResources;
 var J = window.FLInjuries;
 
-var APP_VERSION = "0.9.1"; // atualizado por tools/release.py
+var APP_VERSION = "0.10.0"; // atualizado por tools/release.py
 
 /* ------------------------------------------------------------------ */
 /* Dados fixos do sistema                                             */
@@ -362,6 +362,7 @@ function render() {
     : app.mode === "home" && app.canGM ? renderHome()
     : app.mode === "rolls" && app.canGM ? renderRequests()
     : app.mode === "journey" && app.canGM ? renderJourney()
+    : app.mode === "shield" && app.canGM ? renderShield()
     : app.mode === "group" && app.canGM ? renderGroup()
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
@@ -1100,6 +1101,7 @@ function handleResourceRoll(ev) {
   var key = app.resRolls[ev.payload.rollId];
   delete app.resRolls[ev.payload.rollId];
   if (key === "__cast" || key === "__mishap") { handleCastRoll(key, ev); return; }
+  if (key && key.indexOf("__shield:") === 0) { handleShieldRoll(key.slice(9), ev); return; }
   if (key && key.indexOf("__inj:") === 0) {
     if (ev.kind === "rollResults") {
       var groups = (ev.payload.resultsGroups || []).map(readGroup);
