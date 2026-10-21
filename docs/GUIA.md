@@ -21,8 +21,11 @@ Nas imagens estão Ylva Corvo-de-Cinza, uma caçadora humana, e Tyrgar Pedra-Fun
   - [Reputação, XP e Evoluir](#reputação-xp-e-evoluir)
   - [Cópia de segurança](#cópia-de-segurança)
 - **Para o Mestre**
+  - [A mesa](#a-mesa)
   - [Grupo](#grupo)
   - [Iniciativa](#iniciativa)
+  - [Pedir rolagem](#pedir-rolagem)
+  - [Jornada](#jornada)
   - [Fim de sessão](#fim-de-sessão)
 - [Dúvidas comuns](#dúvidas-comuns)
 
@@ -322,9 +325,23 @@ No fim da aba Histórico:
 
 # Para o Mestre
 
-Quem tem permissão de Mestre no TaleSpire abre a ficha direto no **painel do Mestre**, com três abas: **Grupo**, **Iniciativa** e **Sessão**. O link **Abrir minha ficha de personagem** leva para uma ficha comum, se você também quiser usar uma.
+Quem tem permissão de Mestre no TaleSpire abre a ficha direto no **painel do Mestre**. Tudo o que aparece nele vem das fichas **abertas** dos jogadores no mesmo tabuleiro.
 
-Tudo o que aparece no painel vem das fichas **abertas** dos jogadores no mesmo tabuleiro.
+## A mesa
+
+<img src="img/31-home.png" width="330" align="right">
+
+A tela inicial do painel tem um card para cada ferramenta, com o estado ao vivo:
+
+- **Grupo**: quantas fichas estão ao vivo e se há alertas;
+- **Iniciativa**: se há combate, a rodada e de quem é a vez;
+- **Jornada**: dia, Quarto, estação e terreno;
+- **Pedir rolagem**: quantos jogadores já rolaram o último pedido;
+- **Fim de sessão**: XP concedido.
+
+Os alertas urgentes, como um ferimento letal, aparecem no topo. **Minha ficha** abre uma ficha comum, se você também quiser jogar com um personagem. Em qualquer ferramenta, **← Painel do Mestre** volta para cá.
+
+<br clear="right">
 
 ## Grupo
 
@@ -382,6 +399,51 @@ A ordem e a vez de cada um vão para o chat da mesa.
 
 Na ficha de cada jogador aparece uma faixa com a carta dele, a ordem da rodada e de quem é a vez.
 
+## Pedir rolagem
+
+<img src="img/32-pedir.png" width="330" align="right">
+
+Para pedir uma rolagem a um ou mais jogadores:
+
+1. Escolha **Perícia**, **Atributo** ou **Recurso** (comida, água, flechas ou tochas).
+2. Ajuste o **modificador** e, se quiser, escreva o motivo.
+3. Marque quem rola e clique em **Pedir**.
+
+Os resultados chegam no card do pedido: quantos sucessos cada um tirou, se forçou, ou como ficou o Dado de Recurso.
+
+<br clear="right">
+
+<img src="img/33-jogador-pedido.png" width="330">
+
+Na ficha do jogador aparece o pedido. **Rolar** abre a rolagem já montada, com a perícia e o modificador. **Ignorar** avisa o Mestre. Se o recurso pedido já acabou, a ficha avisa isso no lugar de rolar.
+
+## Jornada
+
+<img src="img/34-jornada.png" width="330" align="right">
+
+A Jornada acompanha a viagem pelo mapa, Quarto de Dia por Quarto de Dia:
+
+- **Dia e Quarto**: Manhã, Dia, Anoitecer e Noite, com a luz de cada um pela **estação**.
+- **Terreno**: mostra quantos hexágonos dá para caminhar por Quarto e os modificadores de Coletar e Caçar, já somados à estação.
+- **Atividades**: escolha o que cada um faz no Quarto: Caminhar, Desbravar, Vigiar, Coletar, Caçar, Pescar, Acampar, Descansar, Dormir ou Explorar. A tela avisa se duas pessoas fazem uma atividade de uma pessoa só, se o grupo se divide ou se ninguém vigia.
+- **Rolagens prontas**: cada atividade gera o botão do pedido de rolagem com o modificador certo, por exemplo Desbravar com −2 no escuro.
+- **Escuro e marcha forçada**: no escuro, um botão pede Patrulha a quem caminha. Depois de dois Quartos caminhando no dia, o terceiro pede Resiliência e o quarto pede Resiliência −2 e deixa todos Insones.
+- **Necessidades do dia**: **Pedir Comida e Água a todos** rola o Dado de Recurso de cada um e marca quem comeu e bebeu. Quem Dorme num Quarto fica marcado como dormiu. Você também pode marcar à mão.
+
+**Passar para o próximo Quarto** avança e avisa no chat.
+
+<br clear="right">
+
+<img src="img/35-fim-dia.png" width="330" align="right">
+
+Ao encerrar a Noite, a tela mostra quem fica **Faminto**, **Desidratado** ou **Insone**. **Marcar condições** marca tudo na ficha de cada jogador e começa o dia seguinte.
+
+<br clear="right">
+
+<img src="img/36-jogador-jornada.png" width="330">
+
+Na ficha do jogador aparece uma faixa com o dia, o Quarto, a estação e a atividade dele.
+
 ## Fim de sessão
 
 <img src="img/27-sessao.png" width="330" align="right">
@@ -406,8 +468,11 @@ Se alguém não aparece na lista, peça para o jogador abrir a ficha e clique em
 **Preciso deixar a ficha aberta?**
 Não precisa deixá-la na tela, mas o Symbiote precisa estar ativo e você precisa estar no mesmo tabuleiro. Sem isso, o Mestre não vê você no Grupo e você não recebe XP nem a carta de iniciativa.
 
-**Atualizar o Symbiote apaga a ficha?**
-Não deveria, porque a ficha fica salva por campanha no TaleSpire. Mesmo assim, faça uma [cópia de segurança](#cópia-de-segurança) antes de atualizar.
+**Preciso atualizar o Symbiote?**
+Não. A ficha carrega da internet, e cada versão nova chega sozinha na próxima vez que você abre o Symbiote. O número da versão aparece no fim da aba Histórico.
+
+**Remover o Symbiote apaga a ficha?**
+Sim. As fichas ficam salvas na pasta do Symbiote, por campanha. Só remova se for reinstalar, e faça uma [cópia de segurança](#cópia-de-segurança) antes.
 
 **O TaleSpire mostra a soma dos dados. Está errado?**
 A soma dos d6 não significa nada no Forbidden Lands, por isso a ficha esconde o resultado nativo. Vale o que aparece na ficha e no chat.
