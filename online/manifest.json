@@ -4,7 +4,7 @@
   "summary": "Ficha de personagem de Forbidden Lands com rolagem pela bandeja, painel do Mestre, iniciativa, ferimentos e magia. Atualiza sozinha, sem reinstalar.",
   "entryPoint": "https://erickhwk.github.io/forbiden-lands-symbiote/index.html",
   "descriptionFilePath": "/README.md",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "license": "MIT",
   "api": {
     "version": "0.1",
