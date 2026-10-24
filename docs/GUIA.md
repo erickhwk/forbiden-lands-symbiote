@@ -443,7 +443,7 @@ Na ficha do jogador aparece o pedido. **Rolar** abre a rolagem já montada, com 
 
 ## Rolagens da mesa
 
-Toda rolagem de um jogador, pedida por você ou não, aparece numa faixa no alto das telas do Painel do Mestre: quem rolou, o quê, o resultado (sucessos, dano, o que custou ao forçar) e as faces de todos os dados. Os dados rolam quietos no tabuleiro, então se um deles cair num buraco ou sair da mesa o número continua ali. A faixa mostra as 3 últimas; **Ver as 15** abre o histórico e **Limpar** zera.
+Toda rolagem de um jogador, pedida por você ou não, aparece numa faixa no alto das telas do Painel do Mestre: quem rolou, o quê, o resultado (sucessos, dano, o que custou ao forçar) e as faces de todos os dados. Os dados rolam quietos no tabuleiro, então se um deles cair num buraco ou sair da mesa o número continua ali. A faixa mostra as 3 últimas; **Ver as 15** abre o histórico e **Limpar** zera. As rolagens da sua própria ficha também aparecem ali, o que deixa testar sozinho: role em **Minha ficha** e volte ao painel.
 
 ## Jornada
 

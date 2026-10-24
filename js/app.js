@@ -1226,7 +1226,7 @@ function applyResource(key, value) {
       : u.empty ? "<color=#E0604E><b>" + k.gone + "</b></color>"
       : "<color=#E0604E>desceu para D" + u.after + "</color>";
     TS.chat.send("<b>" + who + "</b> " + k.verb + " · D" + u.before + ": " + u.value + " · " + tail, "board").catch(function () {});
-    syncSend({ t: "rl", l: k.name, r: "D" + u.before + ": " + u.value + " · " + (!u.dropped ? "continua D" + u.before : u.empty ? k.gone : "desceu para D" + u.after), o: u.dropped ? 0 : 1 }, "gms");
+    sendRollFeed({ t: "rl", l: k.name, r: "D" + u.before + ": " + u.value + " · " + (!u.dropped ? "continua D" + u.before : u.empty ? k.gone : "desceu para D" + u.after), o: u.dropped ? 0 : 1 });
   }
 }
 

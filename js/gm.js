@@ -302,13 +302,13 @@ function reportRollToGm(r) {
     if (res.willpowerGained) text += " · +" + res.willpowerGained + " PFV";
     if (res.gearDamage && r.gearName) text += " · " + r.gearName.replace(/[<>]/g, "").slice(0, 20) + (r.gearBroken ? " quebrou" : " −" + res.gearDamage);
   }
-  syncSend({
+  sendRollFeed({
     t: "rl",
     l: (rollTitle(r) + (r.pushed ? " (forçada)" : "") + (r.prideUsed ? " + Orgulho" : "")).slice(0, 40),
     r: text.slice(0, 120),
     f: diceFaces(r).slice(0, 120),
     o: res.successes ? 1 : 0
-  }, "gms");
+  });
   if (r.requestId) syncSend({ t: "rr", id: r.requestId, s: res.successes, p: r.pushed ? 1 : 0 }, "gms");
 }
 
@@ -320,8 +320,15 @@ var FEED_MAX = 15;
 app.table.feed = [];
 app.feedAll = false;
 
-function receiveRollFeed(from, msg) {
-  var sh = app.table.sheets[from.id];
+/* Manda a rolagem aos Mestres. Quem é Mestre também a vê na própria faixa
+ * (o TaleSpire não devolve a mensagem a quem enviou), o que deixa testar sozinho. */
+function sendRollFeed(msg) {
+  syncSend(msg, "gms");
+  if (app.canGM) receiveRollFeed({ id: null, player: { name: app.sheet.name || "Você" } }, msg, true);
+}
+
+function receiveRollFeed(from, msg, own) {
+  var sh = from.id ? app.table.sheets[from.id] : null;
   var who = sh ? sh.name : (from.player && from.player.name) || "Jogador";
   app.table.feed.unshift({
     who: String(who).slice(0, 40),
@@ -333,7 +340,7 @@ function receiveRollFeed(from, msg) {
   });
   app.table.feed = app.table.feed.slice(0, FEED_MAX);
   render();
-  toast(who + " · " + msg.l + ": " + msg.r);
+  if (!own) toast(who + " · " + msg.l + ": " + msg.r);
 }
 
 /* Faixa fixa no alto das telas do Mestre com as últimas rolagens da mesa. */

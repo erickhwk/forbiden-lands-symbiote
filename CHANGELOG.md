@@ -4,7 +4,7 @@ A ficha se atualiza sozinha: cada versão chega na próxima vez que o Symbiote a
 
 ## 0.15.0
 
-- Rolagens da mesa no painel do Mestre: toda rolagem dos jogadores (perícia, atributo, Dado de Recurso) aparece numa faixa no alto das suas telas, com o resultado e as faces dos dados. Se um dado cair num buraco ou sair da mesa, o número continua legível. Mostra as 3 últimas; "Ver as 15" abre o histórico e "Limpar" zera.
+- Rolagens da mesa no painel do Mestre: toda rolagem dos jogadores (perícia, atributo, Dado de Recurso) aparece numa faixa no alto das suas telas, com o resultado e as faces dos dados. Se um dado cair num buraco ou sair da mesa, o número continua legível. Mostra as 3 últimas; "Ver as 15" abre o histórico e "Limpar" zera. Suas próprias rolagens da ficha também entram, para dar para testar sem jogador.
 - Quantidade nos itens: o − e o + ao lado de "×1" mudam quantos você carrega, e a carga conta cada um. Adicionar do catálogo um item que você já tem só aumenta a quantidade.
 - Cadeado no cabeçalho da ficha: trancada, a montagem não muda (nome, ascendência, profissão, atributos máximos, perícias, talentos, itens, magias, história, XP e Reputação). O que muda em jogo continua livre: dano, Força de Vontade, condições, consumíveis, quantidade, moedas e rolagens.
 
