@@ -26,6 +26,7 @@ Nas imagens estão Ylva Corvo-de-Cinza, uma caçadora humana, e Tyrgar Pedra-Fun
   - [Grupo](#grupo)
   - [Iniciativa](#iniciativa)
   - [Pedir rolagem](#pedir-rolagem)
+  - [Rolagens da mesa](#rolagens-da-mesa)
   - [Jornada](#jornada)
   - [Escudo do Mestre](#escudo-do-mestre)
   - [Bestiário](#bestiário)
@@ -439,6 +440,10 @@ Os resultados chegam no card do pedido: quantos sucessos cada um tirou, se forç
 <img src="img/33-jogador-pedido.png" width="330">
 
 Na ficha do jogador aparece o pedido. **Rolar** abre a rolagem já montada, com a perícia e o modificador. **Ignorar** avisa o Mestre. Se o recurso pedido já acabou, a ficha avisa isso no lugar de rolar.
+
+## Rolagens da mesa
+
+Toda rolagem de um jogador, pedida por você ou não, aparece numa faixa no alto das telas do Painel do Mestre: quem rolou, o quê, o resultado (sucessos, dano, o que custou ao forçar) e as faces de todos os dados. Os dados rolam quietos no tabuleiro, então se um deles cair num buraco ou sair da mesa o número continua ali. A faixa mostra as 3 últimas; **Ver as 15** abre o histórico e **Limpar** zera.
 
 ## Jornada
 

@@ -403,7 +403,8 @@ function render() {
     : app.mode === "combat" && app.canGM ? renderCombat()
     : app.mode === "session" && app.canGM ? renderSession()
     : renderSheet();
-  root.innerHTML = '<div class="app">' + (app.view === "roll" || app.view === "cast" || app.view === "settings" ? "" : renderModeBar()) + body + "</div>";
+  var feed = app.canGM && app.ts && app.view !== "settings" && app.view !== "roll" && app.view !== "cast" && app.mode !== "sheet" ? renderRollFeed() : "";
+  root.innerHTML = '<div class="app">' + (app.view === "roll" || app.view === "cast" || app.view === "settings" ? "" : renderModeBar()) + feed + body + "</div>";
   if (app.sheet.locked) applyLock(root);
 }
 
@@ -1225,6 +1226,7 @@ function applyResource(key, value) {
       : u.empty ? "<color=#E0604E><b>" + k.gone + "</b></color>"
       : "<color=#E0604E>desceu para D" + u.after + "</color>";
     TS.chat.send("<b>" + who + "</b> " + k.verb + " · D" + u.before + ": " + u.value + " · " + tail, "board").catch(function () {});
+    syncSend({ t: "rl", l: k.name, r: "D" + u.before + ": " + u.value + " · " + (!u.dropped ? "continua D" + u.before : u.empty ? k.gone : "desceu para D" + u.after), o: u.dropped ? 0 : 1 }, "gms");
   }
 }
 
@@ -2505,12 +2507,16 @@ function chatText(r) {
     if (r.brokeAttr) text += "\n<color=#E0604E><b>" + attrByKey(r.attrKey).name.toUpperCase() + " ACABADA · fora de ação</b></color>";
   }
 
+  text += "\n<size=85%><color=#A89C88>" + diceFaces(r) + (r.mode === "local" ? " · rolado na ficha" : "") + "</color></size>";
+  return text;
+}
+
+/* Faces de todos os dados, por tipo: "A 6 3 | P 2 | E 1". */
+function diceFaces(r) {
   var abbr = { attribute: "A", skill: "P", negative: "N", gear: "E", artifact: "Art" };
-  var faces = E.byType(r.dice).map(function (g) {
+  return E.byType(r.dice).map(function (g) {
     return abbr[g.type] + " " + g.dice.map(function (d) { return d.value; }).join(" ");
   }).join(" | ");
-  text += "\n<size=85%><color=#A89C88>" + faces + (r.mode === "local" ? " · rolado na ficha" : "") + "</color></size>";
-  return text;
 }
 
 function postToChat(r) {

@@ -98,6 +98,7 @@ function handleSyncMessage(ev) {
       return;
     }
     if (msg.t === "rr") { receiveRequestResult(from.id, msg); return; }
+    if (msg.t === "rl") { receiveRollFeed(from, msg); return; }
     if (msg.t === "xpok") {
       var g = app.grant;
       if (g && g.sent[from.id]) { g.ok[from.id] = true; render(); }

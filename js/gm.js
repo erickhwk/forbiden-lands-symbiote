@@ -291,8 +291,68 @@ function attrOfSkill(key) {
 
 /* Chamado por postToChat (app.js) a cada resultado de rolagem. */
 function reportRollToGm(r) {
-  if (!r.requestId) return;
-  syncSend({ t: "rr", id: r.requestId, s: r.result.successes, p: r.pushed ? 1 : 0 }, "gms");
+  var res = r.result;
+  // Toda rolagem vai para o feed do Mestre, com as faces dos dados: se o dado
+  // cair num buraco ou sair da mesa, o número continua legível na tela dele.
+  var text = E.plural(res.successes, "sucesso", "sucessos");
+  var atk = typeof attackInfo === "function" ? attackInfo(r) : null;
+  if (atk && res.successes) text += " · " + atk.total + " de dano";
+  if (r.pushed) {
+    if (res.attributeDamage) text += " · −" + res.attributeDamage + " " + attrByKey(r.attrKey).name;
+    if (res.willpowerGained) text += " · +" + res.willpowerGained + " PFV";
+    if (res.gearDamage && r.gearName) text += " · " + r.gearName.replace(/[<>]/g, "").slice(0, 20) + (r.gearBroken ? " quebrou" : " −" + res.gearDamage);
+  }
+  syncSend({
+    t: "rl",
+    l: (rollTitle(r) + (r.pushed ? " (forçada)" : "") + (r.prideUsed ? " + Orgulho" : "")).slice(0, 40),
+    r: text.slice(0, 120),
+    f: diceFaces(r).slice(0, 120),
+    o: res.successes ? 1 : 0
+  }, "gms");
+  if (r.requestId) syncSend({ t: "rr", id: r.requestId, s: res.successes, p: r.pushed ? 1 : 0 }, "gms");
+}
+
+/* ------------------------------------------------------------------ */
+/* Rolagens da mesa (Mestre)                                          */
+/* ------------------------------------------------------------------ */
+
+var FEED_MAX = 15;
+app.table.feed = [];
+app.feedAll = false;
+
+function receiveRollFeed(from, msg) {
+  var sh = app.table.sheets[from.id];
+  var who = sh ? sh.name : (from.player && from.player.name) || "Jogador";
+  app.table.feed.unshift({
+    who: String(who).slice(0, 40),
+    l: String(msg.l || "").slice(0, 40),
+    r: String(msg.r || "").slice(0, 120),
+    f: String(msg.f || "").slice(0, 120),
+    o: !!msg.o,
+    at: Date.now()
+  });
+  app.table.feed = app.table.feed.slice(0, FEED_MAX);
+  render();
+  toast(who + " · " + msg.l + ": " + msg.r);
+}
+
+/* Faixa fixa no alto das telas do Mestre com as últimas rolagens da mesa. */
+function renderRollFeed() {
+  var feed = app.table.feed;
+  if (!feed.length) return "";
+  var list = app.feedAll ? feed : feed.slice(0, 3);
+  return '<section class="roll-feed" aria-label="Rolagens da mesa">' +
+    '<div class="row between"><strong class="small">Rolagens da mesa</strong>' +
+    '<span class="row" style="gap:10px">' +
+      (feed.length > 3 ? '<button class="link-btn inline" data-action="feedAll">' + (app.feedAll ? "Menos" : "Ver as " + feed.length) + "</button>" : "") +
+      '<button class="link-btn inline" data-action="feedClear">Limpar</button></span></div>' +
+    list.map(function (e) {
+      return '<div class="rf-row ' + (e.o ? "ok" : "bad") + '">' +
+        '<div class="rf-top"><span><strong>' + esc(e.who) + "</strong> · " + esc(e.l) + '</span><span class="small muted">' + ago(e.at) + "</span></div>" +
+        '<div class="rf-res">' + esc(e.r) + "</div>" +
+        (e.f ? '<div class="rf-faces small muted">' + esc(e.f) + "</div>" : "") +
+        "</div>";
+    }).join("") + "</section>";
 }
 
 /* Chamado por applyResource (app.js). */
@@ -312,6 +372,8 @@ Object.assign(actions, {
   rqMod: function (el) { app.rqForm.m = clamp(app.rqForm.m + (+el.dataset.delta), -5, 5); },
   rqSend: function () { sendRequest(); },
   rqClear: function () { app.requests = []; },
+  feedAll: function () { app.feedAll = !app.feedAll; },
+  feedClear: function () { app.table.feed = []; app.feedAll = false; },
   rqRoll: function (el) {
     var rq = takeRequest(el.dataset.id);
     if (!rq) return;

@@ -837,3 +837,12 @@ details.spell[open] summary .item-name { color: var(--accent); }
   .list-row.gear-item > .grow { flex: 1 1 100%; }
 }
 .adder[hidden] { display: none; }
+
+/* Rolagens da mesa (Mestre) */
+.roll-feed { background: var(--surface); border: 1px solid var(--border-strong); border-left: 3px solid var(--brass); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: grid; gap: 8px; }
+.rf-row { display: grid; gap: 2px; padding-top: 8px; border-top: 1px solid var(--border); }
+.rf-top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.rf-res { font-weight: 700; }
+.rf-row.ok .rf-res { color: var(--success); }
+.rf-row.bad .rf-res { color: var(--muted); }
+.rf-faces { letter-spacing: .02em; }
